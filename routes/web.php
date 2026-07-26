@@ -24,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::apiResource('tasks', TaskController::class);
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::post('favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
+    Route::post('time-logs/start', [\App\Http\Controllers\TimeLogController::class, 'start'])->name('time-logs.start');
+    Route::post('time-logs/{timeLog}/stop', [\App\Http\Controllers\TimeLogController::class, 'stop'])->name('time-logs.stop');
+    Route::post('time-logs', [\App\Http\Controllers\TimeLogController::class, 'store'])->name('time-logs.store');
 });
 
 require __DIR__.'/auth.php';
