@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'google_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -28,5 +28,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class);
+    }
+
+    public function tasks()
+    {
+        return $this->belongsToMany(Task::class);
+    }
+
+    public function timeLogs()
+    {
+        return $this->hasMany(TimeLog::class);
+    }
+
+    public function favoriteProjects()
+    {
+        return $this->morphedByMany(Project::class, 'favoritable', 'favorites');
+    }
+
+    public function favoriteTasks()
+    {
+        return $this->morphedByMany(Task::class, 'favoritable', 'favorites');
     }
 }
