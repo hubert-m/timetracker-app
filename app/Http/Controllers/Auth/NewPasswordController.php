@@ -19,8 +19,16 @@ class NewPasswordController extends Controller
     /**
      * Display the password reset view.
      */
-    public function create(Request $request): View
+    public function create(Request $request): \Illuminate\Http\RedirectResponse|View
     {
+        $resetRecord = \Illuminate\Support\Facades\DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$resetRecord) {
+            return redirect()->route('password.request')->with('error', 'Link do resetu hasła jest już nieaktywny. Wyślij prośbę ponownie.');
+        }
+
         return view('auth.reset-password', ['request' => $request]);
     }
 
@@ -29,7 +37,7 @@ class NewPasswordController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
     {
         $request->validate([
             'token' => ['required'],
@@ -55,6 +63,16 @@ class NewPasswordController extends Controller
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
+        if ($request->wantsJson()) {
+            if ($status == Password::PASSWORD_RESET) {
+                return response()->json(['success' => true, 'message' => __($status)]);
+            }
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => ['email' => [__($status)]]
+            ], 422);
+        }
+
         return $status == Password::PASSWORD_RESET
                     ? redirect()->route('login')->with('status', __($status))
                     : back()->withInput($request->only('email'))

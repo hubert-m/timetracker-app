@@ -6,6 +6,7 @@
           containerHeight: 0,
           errors: {},
           isLoading: false,
+          isLoaded: false,
           resendTimer: 0,
           resendInterval: null,
           notify(text, type = 'info') {
@@ -85,7 +86,21 @@
               }
           }
       }"
-      x-init="$watch('mode', () => { errors = {}; updateHeight(); }); updateHeight();"
+      x-init="
+          $watch('mode', () => { errors = {}; updateHeight(); }); 
+          updateHeight(); 
+          setTimeout(() => isLoaded = true, 50);
+          
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('status') === 'reset-success') {
+              setTimeout(() => notify('Hasło zostało pomyślnie zmienione! Możesz się teraz zalogować.', 'success'), 500);
+              window.history.replaceState({}, document.title, window.location.pathname);
+          }
+          
+          @if(session('error'))
+              setTimeout(() => notify('{{ session('error') }}', 'error'), 500);
+          @endif
+      "
       @resize.window="updateHeight()">
     <div class="glass-panel rounded-3xl p-8 lg:p-10 shadow-2xl relative overflow-hidden">
         <!-- Highlight line -->
@@ -127,7 +142,7 @@
 
 
         <!-- Formularze (Smooth Height + Swipe) -->
-        <div class="relative w-full transition-[height] duration-500 ease-in-out" :style="'height: ' + containerHeight + 'px'">
+        <div class="relative w-full" :class="isLoaded ? 'transition-[height] duration-500 ease-in-out' : ''" :style="'height: ' + containerHeight + 'px'">
             <!-- Logowanie Form -->
             <form x-ref="login" x-show="mode === 'login'" 
                   x-transition:enter="transition transform ease-out duration-500"
@@ -174,7 +189,7 @@
                     <input type="checkbox" name="remember" id="remember" class="w-4 h-4 rounded border-gray-700 bg-gray-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-gray-900">
                     <label for="remember" class="ml-2 text-sm text-gray-400 cursor-pointer">Pamiętaj mnie</label>
                 </div>
-                <button type="button" @click="submitForm($event, '{{ route('login') }}')" :disabled="isLoading" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-indigo-500/25 mt-4 disabled:opacity-75 flex justify-center items-center gap-2">
+                <button type="submit" :disabled="isLoading" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-indigo-500/25 mt-4 disabled:opacity-75 flex justify-center items-center gap-2">
                     <svg x-show="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     Zaloguj się
                 </button>
@@ -226,7 +241,7 @@
                     <label class="block text-sm font-medium text-gray-300 mb-1.5">Potwierdź hasło</label>
                     <input type="password" name="password_confirmation" required class="w-full bg-gray-900/50 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder-gray-600" placeholder="••••••••">
                 </div>
-                <button type="button" @click="submitForm($event, '{{ route('register') }}')" :disabled="isLoading" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-purple-500/25 mt-4 disabled:opacity-75 flex justify-center items-center gap-2">
+                <button type="submit" :disabled="isLoading" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-purple-500/25 mt-4 disabled:opacity-75 flex justify-center items-center gap-2">
                     <svg x-show="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     Utwórz konto
                 </button>
@@ -261,7 +276,7 @@
                         <span x-show="errors.email" x-text="errors.email ? errors.email[0] : ''" class="text-red-400 text-xs mt-1 block"></span>
                     </div>
                     <div class="flex flex-col gap-3 pt-2">
-                        <button type="button" @click="submitForm($event, '{{ route('password.email') }}')" :disabled="isLoading" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-indigo-500/25 disabled:opacity-75 flex justify-center items-center gap-2">
+                        <button type="submit" :disabled="isLoading" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-indigo-500/25 disabled:opacity-75 flex justify-center items-center gap-2">
                             <svg x-show="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Wyślij link
                         </button>
@@ -300,7 +315,7 @@
                         <span x-show="errors.pin" x-text="errors.pin ? errors.pin[0] : ''" class="text-red-400 text-xs mt-1 block text-center"></span>
                     </div>
                     <div class="pt-4">
-                        <button type="button" @click="submitForm($event, '{{ route('verification.pin') }}')" :disabled="isLoading" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25 disabled:opacity-75 flex justify-center items-center gap-2">
+                        <button type="submit" :disabled="isLoading" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25 disabled:opacity-75 flex justify-center items-center gap-2">
                             <svg x-show="isLoading" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             Aktywuj konto
                         </button>
@@ -310,7 +325,7 @@
                 <form @submit.prevent="submitForm($event, '{{ route('verification.send') }}')" class="mt-4">
                     @csrf
                     <input type="hidden" name="mode" value="verify">
-                    <button type="button" @click="submitForm($event, '{{ route('verification.send') }}')" :disabled="isLoading || resendTimer > 0" class="w-full bg-transparent hover:bg-gray-800 text-indigo-400 hover:text-indigo-300 font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button type="submit" :disabled="isLoading || resendTimer > 0" class="w-full bg-transparent hover:bg-gray-800 text-indigo-400 hover:text-indigo-300 font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg x-show="isLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <span x-text="resendTimer > 0 ? 'Wyślij kod ponownie za (' + resendTimer + 's)' : 'Wyślij kod ponownie'"></span>
                     </button>
