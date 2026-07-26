@@ -1,58 +1,53 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TimeTracker App
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Prosta aplikacja do śledzenia czasu z podziałem na projekty i zadania. Posiada logowanie (tradycyjne + Google OAuth) oraz zaawansowany system zaproszeń.
 
-## About Laravel
+## Środowisko deweloperskie (Lokalne uruchomienie)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Aplikacja dostarcza gotowe skrypty do uruchomienia zarówno backendu (artisan serve) jak i frontendu (vite) na środowisku lokalnym.
+W zależności od używanego systemu operacyjnego wybierz odpowiedni skrypt:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **macOS / Linux:** Uruchom skrypt `./run_develop.sh` (skrypt automatycznie otworzy nowe zakładki w terminalu i uruchomi środowisko).
+- **Windows:** Uruchom skrypt `run_develop.bat`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Pamiętaj, by przed pierwszym uruchomieniem:
+1. Sklonować repozytorium.
+2. Uruchomić `composer install` oraz `npm install`.
+3. Skopiować `.env.example` do `.env` (`cp .env.example .env`).
+4. Uzupełnić zmienne (więcej w sekcji Zmienne Konfiguracyjne).
+5. Wykonać migracje bazy danych poleceniem `php artisan migrate`.
 
-## Learning Laravel
+## Zmienne Konfiguracyjne (.env)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Do poprawnego działania logowania przez Google, na środowisku (zarówno lokalnym, jak i na serwerze produkcyjnym) konieczne jest uzupełnienie w pliku `.env` następujących stałych. Uzyskasz je z konsoli Google Cloud Platform (w sekcji API & Services > Credentials):
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```dotenv
+GOOGLE_CLIENT_ID="twój-client-id-z-google"
+GOOGLE_CLIENT_SECRET="twój-client-secret-z-google"
+GOOGLE_REDIRECT_URI="http://localhost:8000/auth/google/callback" # Adres callbacku, odpowiednio zmieniony na produkcji, np. https://twojadomena.pl/auth/google/callback
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Uruchamianie testów
 
-## Contributing
+W aplikacji znajdują się testy jednostkowe/integracyjne (PHPUnit / Pest), które testują m.in. operacje biznesowe projektów oraz uprawnienia zaproszeń. Aby upewnić się, że wszystko działa, wystarczy wykonać polecenie:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan test
+```
 
-## Code of Conduct
+## Wdrożenie (Deployment) na serwerze produkcyjnym
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Aplikacja jest przygotowana do szybkiego aktualizowania (Continuous Deployment) przy użyciu skryptu `pull.sh`.
+Skrypt ten odpowiada za:
+1. Zaciągnięcie zmian z repozytorium (branch develop/main).
+2. Wykonanie migracji bazy danych (w trybie force).
+3. Instalację i aktualizację zależności backendowych (composer) i frontendowych (npm).
+4. Kompilację zasobów (npm run build).
+5. Optymalizację cache'y Laravela.
+6. **Uruchomienie testów** upewniając się, że nowa wersja niczego nie psuje.
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Wystarczy wejść do katalogu z projektem na swoim serwerze produkcyjnym i wykonać:
+```bash
+./pull.sh
+```
+Zalecane jest stworzenie aliasu w systemie lub podpięcie tego skryptu pod hooki gita po stronie serwera/CI. Wszelkie operacje wdrażania zostaną automatycznie zapisane w folderze z logami: `storage/logs/pull/`.

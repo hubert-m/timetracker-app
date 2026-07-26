@@ -14,7 +14,7 @@ class SettingsController extends Controller
         
         // Jeśli użytkownik nie ma hasła (logowanie Google)
         if (is_null($user->password)) {
-            $validated = $request->validate([
+            $validated = $request->validateWithBag('updatePassword', [
                 'password' => ['required', 'confirmed', Password::defaults()],
             ]);
 
@@ -26,7 +26,7 @@ class SettingsController extends Controller
         }
 
         // Zmiana hasła jeśli istnieje (wymaga starego hasła)
-        $validated = $request->validate([
+        $validated = $request->validateWithBag('updatePassword', [
             'current_password' => ['required', 'current_password'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);

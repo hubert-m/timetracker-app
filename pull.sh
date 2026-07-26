@@ -42,6 +42,10 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+echo "[7/7] 🧪 Uruchamianie testów integracyjnych/funkcjonalnych..."
+php artisan test
+
+
 # Pobieranie najnowszego tagu (jeśli istnieje) do wersji
 TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 DATE=$(date '+%Y-%m-%d %H:%M:%S')
