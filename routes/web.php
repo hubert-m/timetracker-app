@@ -7,8 +7,11 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::get('/', function (\Illuminate\Http\Request $request) {
     if (auth()->check()) {
+        if (!auth()->user()->hasVerifiedEmail()) {
+            return view('welcome');
+        }
         return redirect()->route('dashboard');
     }
     return view('welcome');

@@ -40,7 +40,7 @@
 </head>
 <body class="antialiased bg-gray-900 text-gray-100 selection:bg-indigo-500 selection:text-white relative overflow-x-hidden" 
       x-data="{ 
-          mode: '{{ old('mode', (session('status') ? 'forgot_password' : 'login')) }}',
+          mode: '{{ auth()->check() && !auth()->user()->hasVerifiedEmail() ? 'verify' : old('mode', (session('status') ? 'forgot_password' : 'login')) }}',
           containerHeight: 0,
           updateHeight() {
               this.$nextTick(() => {
@@ -98,14 +98,14 @@
                 <div class="flex items-center justify-between mb-8 border-b border-gray-700 pb-4 relative">
                     <!-- Tryby Logowanie i Rejestracja -->
                     <button @click="mode = 'login'" 
-                            x-show="mode !== 'forgot_password'"
+                            x-show="mode !== 'forgot_password' && mode !== 'verify'"
                             :class="mode === 'login' ? 'text-white' : 'text-gray-400 hover:text-gray-200'"
                             class="text-lg font-semibold transition-colors duration-200 w-1/2 text-center">
                         Logowanie
                         <div x-show="mode === 'login'" class="h-0.5 w-8 bg-indigo-500 mx-auto mt-2 rounded-full"></div>
                     </button>
                     <button @click="mode = 'register'" 
-                            x-show="mode !== 'forgot_password'"
+                            x-show="mode !== 'forgot_password' && mode !== 'verify'"
                             :class="mode === 'register' ? 'text-white' : 'text-gray-400 hover:text-gray-200'"
                             class="text-lg font-semibold transition-colors duration-200 w-1/2 text-center">
                         Rejestracja
@@ -116,6 +116,13 @@
                     <button x-show="mode === 'forgot_password'" x-cloak
                             class="text-lg font-semibold text-white transition-colors duration-200 w-full text-center cursor-default">
                         Odzyskiwanie hasła
+                        <div class="h-0.5 w-16 bg-indigo-500 mx-auto mt-2 rounded-full"></div>
+                    </button>
+
+                    <!-- Tryb Weryfikacji konta (PIN) -->
+                    <button x-show="mode === 'verify'" x-cloak
+                            class="text-lg font-semibold text-white transition-colors duration-200 w-full text-center cursor-default">
+                        Aktywacja konta
                         <div class="h-0.5 w-16 bg-indigo-500 mx-auto mt-2 rounded-full"></div>
                     </button>
                 </div>
@@ -276,6 +283,57 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- Weryfikacja konta Form -->
+                    <div x-ref="verify" x-show="mode === 'verify'" x-cloak
+                         x-transition:enter="transition transform ease-out duration-500"
+                         x-transition:enter-start="opacity-0 translate-x-12"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition transform ease-in duration-300"
+                         x-transition:leave-start="opacity-100 translate-x-0"
+                         x-transition:leave-end="opacity-0 -translate-x-12"
+                         class="absolute top-0 left-0 w-full">
+                        <div class="mb-4 text-sm text-gray-400 leading-relaxed text-center">
+                            Na Twój adres e-mail został wysłany kod aktywacyjny. Wprowadź go poniżej, aby uzyskać pełny dostęp do systemu.
+                            <br><span class="text-xs text-gray-500 mt-2 block">Pamiętaj, aby sprawdzić folder SPAM.</span>
+                        </div>
+
+                        <!-- Session Status -->
+                        @if (session('status') == 'verification-link-sent')
+                            <div class="mb-4 font-medium text-sm text-green-400 text-center bg-green-500/10 border border-green-500/20 py-2 rounded-lg">
+                                Nowy link weryfikacyjny i PIN został wysłany.
+                            </div>
+                        @endif
+
+                        <form action="{{ route('verification.pin') }}" method="POST" class="space-y-4">
+                            @csrf
+                            <div>
+                                <input type="text" name="pin" maxlength="6" required class="w-full bg-gray-900/50 border border-gray-700 rounded-xl px-4 py-4 text-white text-center text-3xl font-bold tracking-widest focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder-gray-700" placeholder="000000">
+                                @error('pin') <span class="text-red-400 text-xs mt-1 block text-center">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="pt-4">
+                                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25">
+                                    Aktywuj konto
+                                </button>
+                            </div>
+                        </form>
+
+                        <form action="{{ route('verification.send') }}" method="POST" class="mt-4" x-data="{ sending: false }" @submit="sending = true">
+                            @csrf
+                            <button type="submit" :disabled="sending" class="w-full bg-transparent hover:bg-gray-800 text-gray-400 hover:text-gray-300 font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-sm flex items-center justify-center gap-2">
+                                <svg x-show="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span x-text="sending ? 'Wysyłanie...' : 'Wyślij kod ponownie (co 60s)'"></span>
+                            </button>
+                        </form>
+                        
+                        <form action="{{ route('logout') }}" method="POST" class="mt-2 text-center">
+                            @csrf
+                            <button type="submit" class="text-xs text-indigo-400 hover:text-indigo-300 underline">
+                                Wyloguj i wróć później
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
 
             </div>

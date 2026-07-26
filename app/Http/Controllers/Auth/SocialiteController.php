@@ -39,12 +39,13 @@ class SocialiteController extends Controller
             return redirect()->intended(route('dashboard', absolute: false));
         }
 
-        // Stwórz nowego użytkownika z pustym hasłem
+        // Stwórz nowego użytkownika z pustym hasłem i statusem zweryfikowanym
         $user = User::create([
             'name' => $googleUser->name,
             'email' => $googleUser->email,
             'google_id' => $googleUser->id,
             'password' => null,
+            'email_verified_at' => now(),
         ]);
 
         event(new Registered($user));
