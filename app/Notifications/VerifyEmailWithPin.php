@@ -39,7 +39,6 @@ class VerifyEmailWithPin extends Notification
             ->line(new \Illuminate\Support\HtmlString('<div style="background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; text-align: center; font-size: 32px; letter-spacing: 6px; font-weight: 800; margin: 30px 0; color: #4f46e5;">' . $pin . '</div>'))
             ->line('Możesz również użyć szybkiej aktywacji, klikając bezpośrednio w poniższy przycisk:')
             ->action('Aktywuj konto', $verificationUrl)
-            ->line(new \Illuminate\Support\HtmlString('<strong>Ważne:</strong> Jeśli ta wiadomość omyłkowo trafiła do folderu <strong>SPAM</strong>, upewnij się, że oznaczysz ją jako "To nie jest SPAM", aby nie przegapić powiadomień systemowych.'))
             ->line('Jeśli nie rejestrowałeś się w naszym serwisie, zignoruj tę wiadomość.');
     }
 

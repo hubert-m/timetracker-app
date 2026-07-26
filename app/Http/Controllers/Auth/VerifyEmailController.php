@@ -39,7 +39,9 @@ class VerifyEmailController extends Controller
         }
 
         if ($request->user()->activation_pin !== $request->pin) {
-            return back()->withErrors(['pin' => 'Wprowadzony kod PIN jest nieprawidłowy.']);
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'pin' => ['Wprowadzony kod PIN jest nieprawidłowy.'],
+            ]);
         }
 
         if ($request->user()->markEmailAsVerified()) {
