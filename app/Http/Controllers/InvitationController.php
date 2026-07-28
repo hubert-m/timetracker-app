@@ -12,6 +12,49 @@ use App\Notifications\NewInvitationNotification;
 
 class InvitationController extends Controller
 {
+    public function suggestions(Request $request)
+    {
+        $q = $request->input('q');
+        if (!$q || strlen($q) < 3) {
+            return response()->json([]);
+        }
+
+        $userId = Auth::id();
+        
+        $projectIds = Auth::user()->projects()->pluck('projects.id');
+        $taskIds = Auth::user()->tasks()->pluck('tasks.id');
+
+        $users = User::where('id', '!=', $userId)
+            ->where('email', 'like', "%{$q}%")
+            ->where(function ($query) use ($projectIds, $taskIds) {
+                $query->whereHas('projects', function ($qp) use ($projectIds) {
+                    $qp->whereIn('projects.id', $projectIds);
+                })->orWhereHas('tasks', function ($qt) use ($taskIds) {
+                    $qt->whereIn('tasks.id', $taskIds);
+                });
+            })
+            ->pluck('email');
+
+        $pending = PendingInvitation::where('email', 'like', "%{$q}%")
+            ->where(function ($query) use ($projectIds, $taskIds) {
+                $query->where(function ($qp) use ($projectIds) {
+                    $qp->where('invitable_type', Project::class)
+                       ->whereIn('invitable_id', $projectIds);
+                })->orWhere(function ($qt) use ($taskIds) {
+                    $qt->where('invitable_type', Task::class)
+                       ->whereIn('invitable_id', $taskIds);
+                });
+            })
+            ->pluck('email');
+
+        $suggestions = collect($users)
+            ->merge($pending)
+            ->unique()
+            ->values();
+
+        return response()->json($suggestions);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -23,8 +66,9 @@ class InvitationController extends Controller
         $resourceClass = $validated['resource_type'] === 'Project' ? Project::class : Task::class;
         $resource = $resourceClass::findOrFail($validated['resource_id']);
 
-        $hasAccess = $resource->users()->where('user_id', Auth::id())->exists();
-        if (!$hasAccess && $validated['resource_type'] === 'Task') {
+        if ($validated['resource_type'] === 'Project') {
+            $hasAccess = $resource->users()->where('user_id', Auth::id())->exists();
+        } elseif ($validated['resource_type'] === 'Task') {
             $hasAccess = $resource->project->users()->where('user_id', Auth::id())->exists();
         }
 
@@ -63,5 +107,25 @@ class InvitationController extends Controller
         );
 
         return response()->json(['message' => 'Zaproszenie zostało dodane do oczekujących.']);
+    }
+
+    public function destroy(PendingInvitation $invitation)
+    {
+        $resource = $invitation->invitable;
+        $hasAccess = false;
+
+        if ($invitation->invitable_type === 'App\Models\Project') {
+            $hasAccess = $resource->users()->where('user_id', Auth::id())->exists();
+        } elseif ($invitation->invitable_type === 'App\Models\Task') {
+            $hasAccess = $resource->project->users()->where('user_id', Auth::id())->exists();
+        }
+
+        if (!$hasAccess) {
+            abort(403, 'Brak uprawnień do anulowania tego zaproszenia.');
+        }
+
+        $invitation->delete();
+
+        return response()->json(['message' => 'Zaproszenie zostało anulowane pomyślnie.']);
     }
 }

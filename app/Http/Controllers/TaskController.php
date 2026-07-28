@@ -69,4 +69,19 @@ class TaskController extends Controller
         $task->delete();
         return response()->noContent();
     }
+
+    public function removeUser(Task $task, $userId)
+    {
+        // Tylko admin głównego projektu może kogoś wyrzucić z zadania
+        if (!$task->project->users()->where('user_id', Auth::id())->exists()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $user = \App\Models\User::findOrFail($userId);
+        $task->users()->detach($userId);
+
+        $user->notify(new \App\Notifications\UserRemovedNotification('Task', $task->title));
+
+        return response()->json(['message' => 'Użytkownik został usunięty z zadania.']);
+    }
 }

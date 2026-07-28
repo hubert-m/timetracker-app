@@ -31,8 +31,14 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('projects', ProjectController::class);
+    Route::delete('projects/{project}/users/{user}', [ProjectController::class, 'removeUser'])->name('projects.removeUser');
+    
     Route::resource('tasks', TaskController::class);
+    Route::delete('tasks/{task}/users/{user}', [TaskController::class, 'removeUser'])->name('tasks.removeUser');
+    
+    Route::get('invitations/suggestions', [InvitationController::class, 'suggestions'])->name('invitations.suggestions');
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
+    Route::delete('invitations/{invitation}', [InvitationController::class, 'destroy'])->name('invitations.destroy');
     Route::post('favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     
     Route::post('/notifications/{id}/read', function ($id) {

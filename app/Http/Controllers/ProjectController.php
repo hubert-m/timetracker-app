@@ -58,14 +58,16 @@ class ProjectController extends Controller
 
         // Pobranie Tasków odpowiednio do uprawnień
         if ($isProjectMember) {
-            $tasks = $project->tasks()->with('users')->latest()->get();
+            $tasks = $project->tasks()->with(['users', 'pendingInvitations'])->latest()->get();
         } else {
-            $tasks = $project->tasks()->with('users')->whereHas('users', function ($query) use ($userId) {
+            $tasks = $project->tasks()->with(['users', 'pendingInvitations'])->whereHas('users', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
             })->latest()->get();
         }
 
-        return view('projects.show', compact('project', 'users', 'tasks', 'isProjectMember'));
+        $pendingInvitations = $project->pendingInvitations()->get();
+
+        return view('projects.show', compact('project', 'users', 'tasks', 'isProjectMember', 'pendingInvitations'));
     }
 
     public function update(Request $request, Project $project)
@@ -91,5 +93,19 @@ class ProjectController extends Controller
 
         $project->delete();
         return response()->noContent();
+    }
+
+    public function removeUser(Project $project, $userId)
+    {
+        if (!$project->users()->where('user_id', Auth::id())->exists()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $user = \App\Models\User::findOrFail($userId);
+        $project->users()->detach($userId);
+
+        $user->notify(new \App\Notifications\UserRemovedNotification('Project', $project->title ?? $project->name));
+
+        return response()->json(['message' => 'Użytkownik został usunięty.']);
     }
 }
