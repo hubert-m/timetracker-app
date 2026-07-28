@@ -21,10 +21,6 @@
                         Projekty
                     </a>
                     
-                    <a href="{{ route('tasks.index') }}" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors {{ request()->routeIs('tasks.*') ? 'bg-gray-800/80 font-bold' : 'hover:bg-gray-800/50 font-medium' }}">
-                        Zadania
-                    </a>
-                    
                     <button type="button" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors hover:bg-gray-800/50 cursor-pointer flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         Zaraportuj czas
@@ -152,9 +148,6 @@
             </a>
             <a href="{{ route('projects.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('projects.*') ? 'border-indigo-400 text-white bg-gray-800' : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-800 hover:border-gray-600' }} text-base font-medium transition-colors">
                 Projekty
-            </a>
-            <a href="{{ route('tasks.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('tasks.*') ? 'border-indigo-400 text-white bg-gray-800' : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-800 hover:border-gray-600' }} text-base font-medium transition-colors">
-                Zadania
             </a>
         </div>
         

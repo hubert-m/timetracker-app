@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectFolderController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\FavoriteController;
@@ -34,6 +35,14 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('projects', ProjectController::class);
     Route::delete('projects/{project}/users/{user}', [ProjectController::class, 'removeUser'])->name('projects.removeUser');
+
+    // Katalogi projektów
+    Route::get('folders', [ProjectFolderController::class, 'index'])->name('folders.index');
+    Route::post('folders', [ProjectFolderController::class, 'store'])->name('folders.store');
+    Route::patch('folders/{folder}', [ProjectFolderController::class, 'update'])->name('folders.update');
+    Route::delete('folders/{folder}', [ProjectFolderController::class, 'destroy'])->name('folders.destroy');
+    Route::post('folders/assign', [ProjectFolderController::class, 'assignProject'])->name('folders.assign');
+    Route::post('folders/unassign', [ProjectFolderController::class, 'unassignProject'])->name('folders.unassign');
     
     Route::resource('tasks', TaskController::class);
     Route::patch('tasks/{task}/toggle-complete', [TaskController::class, 'toggleComplete'])->name('tasks.toggleComplete');

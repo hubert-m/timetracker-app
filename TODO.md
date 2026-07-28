@@ -1,0 +1,9 @@
+- w widoku "/projects/5" czlonek zespolu moze skasowac wlasciciela. Czlonek zespolu w projekcie nie moze zarzadzac jego czlonkami (dodawac nowych i kasowac istniejacych). Moze ich tylko widziec.
+- jak robimy komunikat "... zaprosił Cię do zadania: ..." to dopiszmy tam jeszcze "w projekcie ..."
+- katalogi projektow - button X do kasowania katalogu musi miec wiekszy z-index zeby wystawal poza kontener
+- katalogi projektow - przy wyborze koloru zrobmy tez jakis colorPicker, zeby dalo sie ustawic niestandardowy kolor. Itemy projektow niech dziedzicza kolor przewodni dla elementow na liscie - zeby przyjmowaly kolor katalogu
+- navbar "Zaraportuj czas" niech odpali sie dropdown z opcjami:
+- - "Trackuj czas" - niech sie pojawi okno modalne z wyborem taska (z pogrupowaniem na projekty i katalogi) i button "Play". Jesli mamy obecnie odpalonego jakiegos taska, to niech zawsze w kazdym widoku bedzie jakies okienko w lewym dolnym rogu ekranu. Klikniecie tej zakladki w menu ponownie niech pokaze komunikat, ze masz obecnie trackowany czas do zadania ..., czy chcesz zatrzymac.
+- - "Wpisz czas" - niech odpali sie okno modalne z wyborem taska (pogrupowane na projekty i katalogi), data (domyslnie dzisiaj), ilosc godzin, opcjonalny komentarz
+- - "Zestawienia godzin" - niech odpali sie nowy widok, z opcją filtrowania po projekcie (pogrupowane na katalogi), w wierszach niech wyswietlaja sie taski, a w kolumnach niech wyświetlają się daty (maksymalnie po prawej niech będzie dzisiejszy dzien) i wyswietlamy tydzien do tylu. W kazdej komorce mozemy kliknac i uzupelnic ilosc godzin
+- niech kazdy czlonek projektu moze przypisac projekt do swoich katalogow, bez nadpisywania "odgornego" przypisania do katalogu. Bo aktualnie czlonek projektu moze przypisac do swoich katalog, tylko ze nadpisuje to przypisanie, jakie ustawil sobie wlasciciel projektu

@@ -6,7 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    protected $fillable = ['title', 'description'];
+    protected $fillable = ['title', 'description', 'folder_id'];
+
+    public function folder()
+    {
+        return $this->belongsTo(ProjectFolder::class, 'folder_id');
+    }
 
     public function users()
     {

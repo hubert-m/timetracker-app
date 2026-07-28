@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\ProjectFolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,10 +18,14 @@ class ProjectController extends Controller
             $query->where('user_id', $userId);
         })->get();
 
+        $folders = ProjectFolder::where('user_id', $userId)
+            ->orderBy('position')
+            ->get();
+
         if (request()->wantsJson()) {
             return response()->json($projects);
         }
-        return view('projects.index', compact('projects'));
+        return view('projects.index', compact('projects', 'folders'));
     }
 
     public function store(Request $request)
