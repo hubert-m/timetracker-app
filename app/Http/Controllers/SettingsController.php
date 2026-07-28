@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use App\Notifications\PasswordUpdatedNotification;
 
 class SettingsController extends Controller
 {
@@ -22,6 +23,8 @@ class SettingsController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
+            $user->notify(new PasswordUpdatedNotification('ustawione'));
+
             return back()->with('status', 'password-set');
         }
 
@@ -34,6 +37,8 @@ class SettingsController extends Controller
         $user->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        $user->notify(new PasswordUpdatedNotification('zmienione'));
 
         return back()->with('status', 'password-updated');
     }

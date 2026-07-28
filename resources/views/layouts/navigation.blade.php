@@ -42,9 +42,13 @@
                 <!-- Profile Dropdown (Desktop) -->
                 <div class="relative" x-data="{ dropdownOpen: false }" @click.away="dropdownOpen = false">
                     <button @click="dropdownOpen = !dropdownOpen" class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-300 hover:text-white focus:outline-none transition-colors rounded-xl hover:bg-gray-800/50 cursor-pointer">
-                        <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white border border-gray-600">
-                            {{ substr(Auth::user()->name, 0, 1) }}
-                        </div>
+                        @if(Auth::user()->avatar)
+                            <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar" class="w-8 h-8 rounded-full object-cover border border-gray-600">
+                        @else
+                            <div class="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white border border-gray-600">
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            </div>
+                        @endif
                         <span>{{ Auth::user()->name }}</span>
                         <svg class="fill-current h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                     </button>

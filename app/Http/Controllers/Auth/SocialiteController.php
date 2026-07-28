@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Socialite\Facades\Socialite;
 
 class SocialiteController extends Controller
@@ -27,6 +29,7 @@ class SocialiteController extends Controller
         $user = User::where('google_id', $googleUser->id)->first();
 
         if ($user) {
+            $this->syncGoogleAvatar($user, $googleUser);
             Auth::login($user);
             return redirect()->intended(route('dashboard', absolute: false));
         }
@@ -38,6 +41,7 @@ class SocialiteController extends Controller
                 'google_id' => $googleUser->id,
                 'email_verified_at' => $user->email_verified_at ?? now(),
             ]);
+            $this->syncGoogleAvatar($user, $googleUser);
             Auth::login($user);
             return redirect()->intended(route('dashboard', absolute: false));
         }
@@ -51,10 +55,39 @@ class SocialiteController extends Controller
             'email_verified_at' => now(),
         ]);
 
+        $this->syncGoogleAvatar($user, $googleUser);
+
         event(new Registered($user));
 
         Auth::login($user);
 
         return redirect()->intended(route('dashboard', absolute: false));
     }
+
+    private function syncGoogleAvatar(User $user, $googleUser): void
+    {
+        $avatarUrl = $googleUser->getAvatar();
+        if (!$avatarUrl) {
+            return;
+        }
+
+        try {
+            $response = Http::get($avatarUrl);
+            if ($response->successful()) {
+                $extension = 'jpg';
+                $filename = 'avatars/' . $user->id . '_' . time() . '.' . $extension;
+
+                // Usuń stary avatar jeśli istnieje i jest lokalny
+                if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
+
+                Storage::disk('public')->put($filename, $response->body());
+                $user->update(['avatar' => $filename]);
+            }
+        } catch (\Exception $e) {
+            // Nie blokuj logowania jeśli avatar się nie pobierze
+        }
+    }
 }
+

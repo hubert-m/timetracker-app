@@ -76,13 +76,13 @@
                                 <!-- Event Systemowy -->
                                 @php $isCompletedEvent = str_contains($log->description, 'ukończone'); @endphp
                                 <div class="p-3 {{ $isCompletedEvent ? 'bg-emerald-900/20 border-emerald-700/30' : 'bg-indigo-900/20 border-indigo-700/30' }} rounded-2xl border flex items-center gap-4 transition-colors">
-                                    <div class="w-8 h-8 rounded-full {{ $isCompletedEvent ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400' }} flex items-center justify-center">
-                                        @if($isCompletedEvent)
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                        @else
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                        @endif
-                                    </div>
+                                    @if($log->user && $log->user->avatar)
+                                        <img src="{{ asset('storage/' . $log->user->avatar) }}" alt="{{ $log->user->name }}" class="w-8 h-8 rounded-full object-cover ring-2 {{ $isCompletedEvent ? 'ring-emerald-500/60' : 'ring-indigo-500/60' }}">
+                                    @else
+                                        <div class="w-8 h-8 rounded-full {{ $isCompletedEvent ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400' }} flex items-center justify-center text-xs font-bold">
+                                            {{ substr($log->user->name ?? '?', 0, 1) }}
+                                        </div>
+                                    @endif
                                     <div class="flex-1">
                                         <p class="text-sm {{ $isCompletedEvent ? 'text-emerald-300' : 'text-indigo-300' }}">
                                             <span class="font-bold text-white">{{ $log->user->name ?? 'System' }}</span> 
@@ -94,9 +94,13 @@
                                 @else
                                 <div class="p-4 bg-gray-900/60 rounded-2xl border border-gray-700/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:border-indigo-500/30 transition-colors">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
-                                            {{ substr($log->user->name ?? '?', 0, 1) }}
-                                        </div>
+                                        @if($log->user && $log->user->avatar)
+                                            <img src="{{ asset('storage/' . $log->user->avatar) }}" alt="{{ $log->user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-600 shadow-sm">
+                                        @else
+                                            <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
+                                                {{ substr($log->user->name ?? '?', 0, 1) }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <p class="text-sm font-bold text-white">{{ $log->user->name ?? 'Nieznany' }}</p>
                                             <p class="text-xs text-gray-400 mt-0.5">
@@ -145,9 +149,13 @@
                     <ul class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                         @foreach($team as $user)
                         <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative hover:border-gray-600 transition-colors">
-                            <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
-                                {{ substr($user->name, 0, 1) }}
-                            </div>
+                            @if($user->avatar)
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-600 shadow-sm">
+                            @else
+                                <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
+                                    {{ substr($user->name, 0, 1) }}
+                                </div>
+                            @endif
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
                                 <p class="text-[10px] text-gray-500 tracking-wide">{{ $user->email }}</p>

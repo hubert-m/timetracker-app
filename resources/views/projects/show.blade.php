@@ -81,9 +81,13 @@
                                     <div class="mt-4 flex flex-wrap gap-2">
                                         @foreach($task->users as $tUser)
                                             <div class="relative group/user flex items-center bg-gray-800 rounded-full pr-3 border border-gray-700/50">
-                                                <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white border border-gray-900" title="{{ $tUser->name }}">
-                                                    {{ substr($tUser->name, 0, 1) }}
-                                                </div>
+                                                @if($tUser->avatar)
+                                                    <img src="{{ asset('storage/' . $tUser->avatar) }}" alt="{{ $tUser->name }}" class="w-8 h-8 rounded-full object-cover border border-gray-900" title="{{ $tUser->name }}">
+                                                @else
+                                                    <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold text-white border border-gray-900" title="{{ $tUser->name }}">
+                                                        {{ substr($tUser->name, 0, 1) }}
+                                                    </div>
+                                                @endif
                                                 <span class="text-xs text-gray-300 ml-2 font-medium">{{ $tUser->name }}</span>
                                                 @if($isProjectMember && $tUser->id !== Auth::id())
                                                     <button onclick="removeTaskUser({{ $task->id }}, {{ $tUser->id }})" class="absolute right-0 top-0 bottom-0 bg-red-600/90 text-white text-xs px-2 rounded-r-full opacity-0 group-hover/user:opacity-100 transition-opacity flex items-center cursor-pointer" title="Usuń z zadania">
@@ -127,9 +131,13 @@
                     <ul class="space-y-4">
                         @foreach($users as $user)
                         <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative">
-                            <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600">
-                                {{ substr($user->name, 0, 1) }}
-                            </div>
+                            @if($user->avatar)
+                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-600">
+                            @else
+                                <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600">
+                                    {{ substr($user->name, 0, 1) }}
+                                </div>
+                            @endif
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
                                 <p class="text-xs text-gray-500 truncate">{{ $user->email }}</p>
