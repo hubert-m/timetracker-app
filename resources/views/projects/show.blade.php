@@ -182,10 +182,15 @@
                                     <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Adres e-mail członka</label>
                                     <input type="email" id="email" autocomplete="off" x-model="email" @input.debounce.300ms="fetchSuggestions" @focus="showSuggestions = true" @click.away="showSuggestions = false" required placeholder="np. jan@kowalski.pl" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow">
                                     <div x-show="showSuggestions && suggestions.length > 0" style="display: none;" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                                        <template x-for="suggestion in suggestions" :key="suggestion">
-                                            <div @click="selectSuggestion(suggestion)" class="px-4 py-3 hover:bg-indigo-600 cursor-pointer text-gray-200 text-sm transition-colors flex items-center gap-3 border-b border-gray-700/50 last:border-0">
-                                                <div class="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-xs font-bold text-gray-300 border border-gray-700" x-text="suggestion.charAt(0).toUpperCase()"></div>
-                                                <span x-text="suggestion" class="font-medium"></span>
+                                        <template x-for="suggestion in suggestions" :key="suggestion.email">
+                                            <div @click="!suggestion.is_member && selectSuggestion(suggestion.email)" 
+                                                 :class="suggestion.is_member ? 'opacity-50 cursor-not-allowed bg-gray-900' : 'cursor-pointer hover:bg-indigo-600'" 
+                                                 class="px-4 py-3 text-gray-200 text-sm transition-colors flex items-center justify-between border-b border-gray-700/50 last:border-0 group">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-xs font-bold text-gray-300 border border-gray-700" x-text="suggestion.email.charAt(0).toUpperCase()"></div>
+                                                    <span x-text="suggestion.email" class="font-medium"></span>
+                                                </div>
+                                                <span x-show="suggestion.is_member" class="text-[10px] uppercase font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded">Już należy</span>
                                             </div>
                                         </template>
                                     </div>
@@ -267,10 +272,15 @@
                                     <label for="task_email" class="block text-sm font-medium text-gray-300 mb-1">Adres e-mail zapraszanego</label>
                                     <input type="email" id="task_email" autocomplete="off" x-model="email" @input.debounce.300ms="fetchSuggestions" @focus="showSuggestions = true" @click.away="showSuggestions = false" required placeholder="np. jan@kowalski.pl" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow">
                                     <div x-show="showSuggestions && suggestions.length > 0" style="display: none;" class="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                                        <template x-for="suggestion in suggestions" :key="suggestion">
-                                            <div @click="selectSuggestion(suggestion)" class="px-4 py-3 hover:bg-indigo-600 cursor-pointer text-gray-200 text-sm transition-colors flex items-center gap-3 border-b border-gray-700/50 last:border-0">
-                                                <div class="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-xs font-bold text-gray-300 border border-gray-700" x-text="suggestion.charAt(0).toUpperCase()"></div>
-                                                <span x-text="suggestion" class="font-medium"></span>
+                                        <template x-for="suggestion in suggestions" :key="suggestion.email">
+                                            <div @click="!suggestion.is_member && selectSuggestion(suggestion.email)" 
+                                                 :class="suggestion.is_member ? 'opacity-50 cursor-not-allowed bg-gray-900' : 'cursor-pointer hover:bg-indigo-600'" 
+                                                 class="px-4 py-3 text-gray-200 text-sm transition-colors flex items-center justify-between border-b border-gray-700/50 last:border-0 group">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-xs font-bold text-gray-300 border border-gray-700" x-text="suggestion.email.charAt(0).toUpperCase()"></div>
+                                                    <span x-text="suggestion.email" class="font-medium"></span>
+                                                </div>
+                                                <span x-show="suggestion.is_member" class="text-[10px] uppercase font-bold text-gray-500 bg-gray-800 px-2 py-0.5 rounded">Już należy</span>
                                             </div>
                                         </template>
                                     </div>
@@ -404,7 +414,7 @@
                         return;
                     }
                     try {
-                        const res = await fetch(`/invitations/suggestions?q=${encodeURIComponent(this.email)}`);
+                        const res = await fetch(`/invitations/suggestions?q=${encodeURIComponent(this.email)}&project_id={{ $project->id }}`);
                         if (res.ok) {
                             this.suggestions = await res.json();
                             this.showSuggestions = true;
@@ -518,7 +528,7 @@
                         return;
                     }
                     try {
-                        const res = await fetch(`/invitations/suggestions?q=${encodeURIComponent(this.email)}`);
+                        const res = await fetch(`/invitations/suggestions?q=${encodeURIComponent(this.email)}&task_id=${this.taskId}`);
                         if (res.ok) {
                             this.suggestions = await res.json();
                             this.showSuggestions = true;

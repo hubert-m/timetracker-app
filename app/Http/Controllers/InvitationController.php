@@ -52,7 +52,34 @@ class InvitationController extends Controller
             ->unique()
             ->values();
 
-        return response()->json($suggestions);
+        $projectId = $request->input('project_id');
+        $taskId = $request->input('task_id');
+
+        $result = $suggestions->map(function ($email) use ($projectId, $taskId) {
+            $isMember = false;
+            
+            if ($projectId) {
+                $project = Project::find($projectId);
+                if ($project) {
+                    $isMember = $project->users()->where('email', $email)->exists() ||
+                                $project->pendingInvitations()->where('email', $email)->exists();
+                }
+            } elseif ($taskId) {
+                $task = Task::find($taskId);
+                if ($task) {
+                    $isMember = $task->users()->where('email', $email)->exists() ||
+                                $task->project->users()->where('email', $email)->exists() ||
+                                $task->pendingInvitations()->where('email', $email)->exists();
+                }
+            }
+
+            return [
+                'email' => $email,
+                'is_member' => $isMember
+            ];
+        });
+
+        return response()->json($result);
     }
 
     public function store(Request $request)
