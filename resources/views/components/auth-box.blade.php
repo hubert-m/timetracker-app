@@ -101,6 +101,7 @@
               setTimeout(() => notify('{{ session('error') }}', 'error'), 500);
           @endif
       "
+      x-on:switch-mode.window="mode = $event.detail"
       @resize.window="updateHeight()">
     <div class="glass-panel rounded-3xl p-8 lg:p-10 shadow-2xl relative overflow-hidden">
         <!-- Highlight line -->

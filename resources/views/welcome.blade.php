@@ -46,7 +46,7 @@
     <div class="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-purple-600 blur-[150px] opacity-30 animate-float pointer-events-none" style="animation-delay: 2s;"></div>
 
     <!-- MAIN HERO SECTION -->
-    <main class="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 min-h-screen flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20 py-12 lg:py-0">
+    <main x-data class="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8 min-h-screen flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-20 py-12 lg:py-0">
         
         <!-- Hero Copy -->
         <div class="flex-1 text-center lg:text-left mt-10 lg:mt-0">
@@ -65,7 +65,7 @@
             </p>
             
             <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                <button type="button" @click.prevent="window.scrollTo({ top: 0, behavior: 'smooth' })" class="px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
+                <button type="button" @click.prevent="$dispatch('switch-mode', 'register'); window.scrollTo({ top: 0, behavior: 'smooth' })" class="px-8 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">
                     Rozpocznij za darmo
                 </button>
                 <button type="button" @click.prevent="document.getElementById('features').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-semibold transition-all duration-300 transform hover:-translate-y-1 cursor-pointer">

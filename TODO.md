@@ -1,1 +1,0 @@
-- dla logowania/rejestracji przez Google nie musimy wysyłać maila aktywacyjnego, tylko od razu możemy aktywować konto, zalogować i przekierować na /dashboard
