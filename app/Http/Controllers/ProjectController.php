@@ -10,7 +10,13 @@ class ProjectController extends Controller
 {
     public function index()
     {
-        $projects = Auth::user()->projects()->get();
+        $userId = Auth::id();
+        $projects = Project::whereHas('users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->orWhereHas('tasks.users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->get();
+
         if (request()->wantsJson()) {
             return response()->json($projects);
         }
@@ -32,14 +38,34 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        if (!$project->users()->where('user_id', Auth::id())->exists()) {
+        $userId = Auth::id();
+        $isProjectMember = $project->users()->where('user_id', $userId)->exists();
+        
+        // Sprawdź czy chociaż na jednym zadaniu w tym projekcie dany user jest przypisany
+        $isTaskMember = $project->tasks()->whereHas('users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->exists();
+
+        if (!$isProjectMember && !$isTaskMember) {
             abort(403, 'Unauthorized action.');
         }
+
         if (request()->wantsJson()) {
             return response()->json($project);
         }
+
         $users = $project->users()->get();
-        return view('projects.show', compact('project', 'users'));
+
+        // Pobranie Tasków odpowiednio do uprawnień
+        if ($isProjectMember) {
+            $tasks = $project->tasks()->with('users')->latest()->get();
+        } else {
+            $tasks = $project->tasks()->with('users')->whereHas('users', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })->latest()->get();
+        }
+
+        return view('projects.show', compact('project', 'users', 'tasks', 'isProjectMember'));
     }
 
     public function update(Request $request, Project $project)

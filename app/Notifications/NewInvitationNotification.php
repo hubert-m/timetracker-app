@@ -34,7 +34,24 @@ class NewInvitationNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database']; // używamy tylko panelu wewnętrznego do notyfikacji, opcjonalnie: 'mail'
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     *
+     * @return \Illuminate\Notifications\Messages\MailMessage
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $typeName = $this->resourceType === 'Project' ? 'projektu' : 'zadania';
+        
+        return (new MailMessage)
+                    ->subject('Nowe zaproszenie od ' . $this->inviterName)
+                    ->greeting('Witaj ' . $notifiable->name . '!')
+                    ->line("Użytkownik **{$this->inviterName}** zaprosił Cię do {$typeName}: **{$this->resourceName}**.")
+                    ->action('Przejdź do ' . $typeName, $this->url)
+                    ->line('Zaloguj się do aplikacji, aby sprawdzić szczegóły zaproszenia.');
     }
 
     /**

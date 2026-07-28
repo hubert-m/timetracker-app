@@ -23,7 +23,12 @@ class InvitationController extends Controller
         $resourceClass = $validated['resource_type'] === 'Project' ? Project::class : Task::class;
         $resource = $resourceClass::findOrFail($validated['resource_id']);
 
-        if (!$resource->users()->where('user_id', Auth::id())->exists()) {
+        $hasAccess = $resource->users()->where('user_id', Auth::id())->exists();
+        if (!$hasAccess && $validated['resource_type'] === 'Task') {
+            $hasAccess = $resource->project->users()->where('user_id', Auth::id())->exists();
+        }
+
+        if (!$hasAccess) {
             abort(403, 'Brak uprawnień do zapraszania do tego zasobu.');
         }
 
@@ -46,11 +51,16 @@ class InvitationController extends Controller
             return response()->json(['message' => 'Użytkownik został przypisany do zasobu oraz powiadomiony.']);
         }
 
-        PendingInvitation::firstOrCreate([
-            'email' => $validated['email'],
-            'invitable_type' => $resourceClass,
-            'invitable_id' => $resource->id,
-        ]);
+        PendingInvitation::updateOrCreate(
+            [
+                'email' => $validated['email'],
+                'invitable_type' => $resourceClass,
+                'invitable_id' => $resource->id,
+            ],
+            [
+                'inviter_id' => Auth::id(),
+            ]
+        );
 
         return response()->json(['message' => 'Zaproszenie zostało dodane do oczekujących.']);
     }
