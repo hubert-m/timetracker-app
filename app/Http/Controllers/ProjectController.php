@@ -58,11 +58,11 @@ class ProjectController extends Controller
 
         // Pobranie Tasków odpowiednio do uprawnień
         if ($isProjectMember) {
-            $tasks = $project->tasks()->with(['users', 'pendingInvitations'])->latest()->get();
+            $tasks = $project->tasks()->with(['users', 'pendingInvitations'])->orderBy('is_completed', 'asc')->latest()->get();
         } else {
             $tasks = $project->tasks()->with(['users', 'pendingInvitations'])->whereHas('users', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
-            })->latest()->get();
+            })->orderBy('is_completed', 'asc')->latest()->get();
         }
 
         $pendingInvitations = $project->pendingInvitations()->get();

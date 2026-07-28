@@ -103,4 +103,31 @@ class TaskController extends Controller
 
         return response()->json(['message' => 'Użytkownik został usunięty z zadania.']);
     }
+
+    public function toggleComplete(Task $task)
+    {
+        $userId = Auth::id();
+        $isProjectMember = $task->project->users()->where('user_id', $userId)->exists();
+        $isTaskMember = $task->users()->where('user_id', $userId)->exists();
+
+        if (!$isProjectMember && !$isTaskMember) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $task->update(['is_completed' => !$task->is_completed]);
+
+        $statusText = $task->is_completed ? 'Zadanie zostało ukończone.' : 'Zadanie zostało ponownie otwarte.';
+        
+        \App\Models\TimeLog::create([
+            'user_id' => $userId,
+            'task_id' => $task->id,
+            'date' => now()->toDateString(),
+            'start_time' => now(),
+            'end_time' => now(),
+            'duration_minutes' => 0,
+            'description' => $statusText
+        ]);
+
+        return response()->json(['is_completed' => $task->is_completed, 'message' => $statusText]);
+    }
 }

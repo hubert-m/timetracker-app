@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class TimeLog extends Model
 {
-    protected $fillable = ['user_id', 'task_id', 'date', 'start_time', 'end_time', 'duration_minutes'];
+    protected $fillable = ['user_id', 'task_id', 'date', 'start_time', 'end_time', 'duration_minutes', 'description'];
 
     public function user()
     {

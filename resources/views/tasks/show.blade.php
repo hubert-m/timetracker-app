@@ -17,12 +17,18 @@
                 </h2>
             </div>
             
-            @if($isProjectMember)
-            <button onclick="document.getElementById('taskInviteModal').style.display='block'" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-2 text-sm cursor-pointer border border-indigo-500/50">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Zaproś do Zadania
-            </button>
-            @endif
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="toggleComplete({{ $task->id }})" class="px-5 py-2 {{ $task->is_completed ? 'bg-gray-700 hover:bg-gray-600 border-gray-500' : 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)] border-emerald-500/50' }} text-white rounded-xl transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-2 text-sm cursor-pointer border">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    {{ $task->is_completed ? 'Otwórz ponownie' : 'Ukończ zadanie' }}
+                </button>
+                @if($isProjectMember)
+                <button onclick="document.getElementById('taskInviteModal').style.display='block'" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-2 text-sm cursor-pointer border border-indigo-500/50">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Zaproś do Zadania
+                </button>
+                @endif
+            </div>
         </div>
     </x-slot>
 
@@ -66,6 +72,26 @@
                         
                         <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                             @forelse($timeLogs as $log)
+                                @if($log->start_time == $log->end_time && $log->duration_minutes == 0)
+                                <!-- Event Systemowy -->
+                                @php $isCompletedEvent = str_contains($log->description, 'ukończone'); @endphp
+                                <div class="p-3 {{ $isCompletedEvent ? 'bg-emerald-900/20 border-emerald-700/30' : 'bg-indigo-900/20 border-indigo-700/30' }} rounded-2xl border flex items-center gap-4 transition-colors">
+                                    <div class="w-8 h-8 rounded-full {{ $isCompletedEvent ? 'bg-emerald-500/20 text-emerald-400' : 'bg-indigo-500/20 text-indigo-400' }} flex items-center justify-center">
+                                        @if($isCompletedEvent)
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm {{ $isCompletedEvent ? 'text-emerald-300' : 'text-indigo-300' }}">
+                                            <span class="font-bold text-white">{{ $log->user->name ?? 'System' }}</span> 
+                                            <span class="text-gray-300 font-medium ml-1">&mdash; <span class="{{ $isCompletedEvent ? 'text-emerald-400 font-semibold' : '' }}">{{ $log->description }}</span></span>
+                                        </p>
+                                        <p class="text-xs {{ $isCompletedEvent ? 'text-emerald-500/70' : 'text-indigo-500/70' }} mt-0.5">{{ \Carbon\Carbon::parse($log->start_time)->format('d.m.Y H:i') }}</p>
+                                    </div>
+                                </div>
+                                @else
                                 <div class="p-4 bg-gray-900/60 rounded-2xl border border-gray-700/50 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:border-indigo-500/30 transition-colors">
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
@@ -99,6 +125,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                             @empty
                                 <div class="text-center py-10 bg-gray-900/30 rounded-2xl border border-gray-800 border-dashed">
                                     <p class="text-gray-500 text-sm">Brak historii zaraportowanego czasu dla tego zadania.</p>
@@ -218,6 +245,15 @@
     </div>
 
     <script>
+        async function toggleComplete(taskId) {
+            const res = await fetch(`/tasks/${taskId}/toggle-complete`, {
+                method: 'PATCH',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+            });
+            if(res.ok) window.location.reload();
+            else alert('Wystąpił błąd.');
+        }
+
         async function removeTaskUser(taskId, userId) {
             if(!confirm('Czy usunąć tę osobę z wybranego zadania?')) return;
             const res = await fetch(`/tasks/${taskId}/users/${userId}`, {

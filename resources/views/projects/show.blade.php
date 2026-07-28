@@ -52,13 +52,17 @@
                         </div>
                         <div class="space-y-4">
                             @forelse($tasks as $task)
-                                <div class="p-4 bg-gray-900/60 rounded-2xl border border-gray-700/50 hover:border-indigo-500/50 transition-colors group relative">
+                                <div class="p-4 {{ $task->is_completed ? 'bg-emerald-900/10 border-emerald-700/50 opacity-70 hover:opacity-100' : 'bg-gray-900/60 border-gray-700/50 hover:border-indigo-500/50' }} rounded-2xl border transition-all duration-300 group relative">
                                     <div class="flex justify-between items-start">
                                         <div>
                                             <a href="{{ route('tasks.show', $task->id) }}" class="group/title block">
-                                                <h4 class="text-lg font-bold text-white group-hover/title:text-indigo-400 transition-colors cursor-pointer flex items-center gap-2">
+                                                <h4 class="text-lg font-bold {{ $task->is_completed ? 'text-emerald-400 line-through decoration-emerald-500/30' : 'text-white group-hover/title:text-indigo-400' }} transition-colors cursor-pointer flex items-center gap-2">
                                                     {{ $task->title }}
-                                                    <svg class="w-4 h-4 opacity-0 group-hover/title:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                                    @if($task->is_completed)
+                                                        <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] uppercase font-bold rounded-md border border-emerald-500/30 no-underline">Ukończono</span>
+                                                    @else
+                                                        <svg class="w-4 h-4 opacity-0 group-hover/title:opacity-100 transition-opacity text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                                    @endif
                                                 </h4>
                                             </a>
                                             <p class="text-sm text-gray-400 mt-1">{{ $task->description ?? 'Brak opisu.' }}</p>

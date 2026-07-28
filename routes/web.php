@@ -34,6 +34,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('projects/{project}/users/{user}', [ProjectController::class, 'removeUser'])->name('projects.removeUser');
     
     Route::resource('tasks', TaskController::class);
+    Route::patch('tasks/{task}/toggle-complete', [TaskController::class, 'toggleComplete'])->name('tasks.toggleComplete');
     Route::delete('tasks/{task}/users/{user}', [TaskController::class, 'removeUser'])->name('tasks.removeUser');
     
     Route::get('invitations/suggestions', [InvitationController::class, 'suggestions'])->name('invitations.suggestions');
