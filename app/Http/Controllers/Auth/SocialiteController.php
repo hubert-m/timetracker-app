@@ -34,7 +34,10 @@ class SocialiteController extends Controller
         $user = User::where('email', $googleUser->email)->first();
 
         if ($user) {
-            $user->update(['google_id' => $googleUser->id]);
+            $user->update([
+                'google_id' => $googleUser->id,
+                'email_verified_at' => $user->email_verified_at ?? now(),
+            ]);
             Auth::login($user);
             return redirect()->intended(route('dashboard', absolute: false));
         }
