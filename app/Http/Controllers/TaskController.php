@@ -39,10 +39,29 @@ class TaskController extends Controller
 
     public function show(Task $task)
     {
-        if (!$task->users()->where('user_id', Auth::id())->exists()) {
+        $userId = Auth::id();
+        $isProjectMember = $task->project->users()->where('user_id', $userId)->exists();
+        $isTaskMember = $task->users()->where('user_id', $userId)->exists();
+
+        if (!$isProjectMember && !$isTaskMember) {
             abort(403, 'Unauthorized action.');
         }
-        return response()->json($task);
+
+        $projectUsers = $task->project->users;
+        $taskUsers = $task->users;
+        $team = $projectUsers->merge($taskUsers)->unique('id');
+
+        $pendingProject = $task->project->pendingInvitations;
+        $pendingTask = $task->pendingInvitations;
+        $pendingTeam = $pendingProject->merge($pendingTask)->unique('email');
+
+        $timeLogs = $task->timeLogs()->with('user')->orderByDesc('start_time')->get();
+
+        if (request()->wantsJson()) {
+            return response()->json($task);
+        }
+
+        return view('tasks.show', compact('task', 'team', 'pendingTeam', 'isProjectMember', 'timeLogs'));
     }
 
     public function update(Request $request, Task $task)
