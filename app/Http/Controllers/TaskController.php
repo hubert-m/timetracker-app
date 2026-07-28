@@ -12,7 +12,10 @@ class TaskController extends Controller
     public function index()
     {
         $tasks = Auth::user()->tasks()->with('project')->get();
-        return response()->json($tasks);
+        if (request()->wantsJson()) {
+            return response()->json($tasks);
+        }
+        return view('tasks.index', compact('tasks'));
     }
 
     public function store(Request $request)

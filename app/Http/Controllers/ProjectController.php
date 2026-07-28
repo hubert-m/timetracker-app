@@ -11,7 +11,10 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Auth::user()->projects()->get();
-        return response()->json($projects);
+        if (request()->wantsJson()) {
+            return response()->json($projects);
+        }
+        return view('projects.index', compact('projects'));
     }
 
     public function store(Request $request)
