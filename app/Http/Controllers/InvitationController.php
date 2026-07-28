@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\PendingInvitation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\NewInvitationNotification;
 
 class InvitationController extends Controller
 {
@@ -30,7 +31,19 @@ class InvitationController extends Controller
 
         if ($invitedUser) {
             $resource->users()->syncWithoutDetaching([$invitedUser->id]);
-            return response()->json(['message' => 'Użytkownik został przypisany do zasobu.']);
+            
+            $url = $validated['resource_type'] === 'Project' 
+                ? route('projects.show', $resource->id) 
+                : route('tasks.show', $resource->id);
+
+            $invitedUser->notify(new NewInvitationNotification(
+                $resource->title ?? $resource->name ?? 'Zasób',
+                $validated['resource_type'],
+                $url,
+                Auth::user()->name
+            ));
+
+            return response()->json(['message' => 'Użytkownik został przypisany do zasobu oraz powiadomiony.']);
         }
 
         PendingInvitation::firstOrCreate([

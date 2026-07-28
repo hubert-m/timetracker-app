@@ -34,6 +34,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('tasks', TaskController::class);
     Route::post('invitations', [InvitationController::class, 'store'])->name('invitations.store');
     Route::post('favorites/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    
+    Route::post('/notifications/{id}/read', function ($id) {
+        auth()->user()->notifications()->findOrFail($id)->markAsRead();
+        return response()->json(['success' => true]);
+    })->name('notifications.read');
 
     Route::post('time-logs/start', [\App\Http\Controllers\TimeLogController::class, 'start'])->name('time-logs.start');
     Route::post('time-logs/{timeLog}/stop', [\App\Http\Controllers\TimeLogController::class, 'stop'])->name('time-logs.stop');

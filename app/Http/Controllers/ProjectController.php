@@ -35,7 +35,11 @@ class ProjectController extends Controller
         if (!$project->users()->where('user_id', Auth::id())->exists()) {
             abort(403, 'Unauthorized action.');
         }
-        return response()->json($project);
+        if (request()->wantsJson()) {
+            return response()->json($project);
+        }
+        $users = $project->users()->get();
+        return view('projects.show', compact('project', 'users'));
     }
 
     public function update(Request $request, Project $project)
