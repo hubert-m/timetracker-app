@@ -11,8 +11,8 @@
                 </h2>
             </div>
             
-            @if($isProjectMember)
-            <button onclick="document.getElementById('inviteModal').style.display='block'" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-2 text-sm">
+            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_add_members'])))
+            <button onclick="document.getElementById('inviteModal').style.display='block'" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-2 text-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 Zaproś członka
             </button>
@@ -30,7 +30,7 @@
                     <div class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 shadow-xl relative group">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-white">O projekcie</h3>
-                            @if($isProjectMember)
+                            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_edit_project'])))
                             <button onclick="document.getElementById('editProjectModal').style.display='block'" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition opacity-0 group-hover:opacity-100 cursor-pointer">
                                 Edytuj
                             </button>
@@ -43,8 +43,8 @@
                     <div class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 shadow-xl">
                         <div class="flex justify-between items-center mb-6">
                             <h3 class="text-xl font-bold text-white">Zadania</h3>
-                            @if($isProjectMember)
-                            <button onclick="document.getElementById('taskModal').style.display='block'" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg shadow-[0_0_15px_rgba(34,197,94,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-1 text-sm">
+                            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_create_tasks'])))
+                            <button onclick="document.getElementById('taskModal').style.display='block'" class="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white rounded-lg shadow-[0_0_15px_rgba(34,197,94,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-1 text-sm cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                                 Nowe Zadanie
                             </button>
@@ -68,10 +68,12 @@
                                             <p class="text-sm text-gray-400 mt-1">{{ $task->description ?? 'Brak opisu.' }}</p>
                                         </div>
                                         <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-                                            @if($isProjectMember)
+                                            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_edit_tasks'])))
                                             <button onclick="window.dispatchEvent(new CustomEvent('open-task-edit', { detail: { id: {{ $task->id }}, title: '{{ addslashes($task->title) }}', description: '{{ addslashes($task->description) }}' } }))" class="px-2 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 hover:text-white cursor-pointer">
                                                 Edytuj
                                             </button>
+                                            @endif
+                                            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_add_task_members'])))
                                             <button onclick="window.dispatchEvent(new CustomEvent('open-task-invite', { detail: { id: {{ $task->id }} } }))" class="px-3 py-1 text-xs font-semibold bg-gray-700 text-gray-300 rounded-lg hover:bg-indigo-600 hover:text-white cursor-pointer">
                                                 Zaproś
                                             </button>
@@ -89,7 +91,7 @@
                                                     </div>
                                                 @endif
                                                 <span class="text-xs text-gray-300 ml-2 font-medium">{{ $tUser->name }}</span>
-                                                @if($isProjectMember && $tUser->id !== Auth::id())
+                                                @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_task_members'])) && $tUser->id !== Auth::id() && $tUser->id !== $task->creator_id)
                                                     <button onclick="removeTaskUser({{ $task->id }}, {{ $tUser->id }})" class="absolute right-0 top-0 bottom-0 bg-red-600/90 text-white text-xs px-2 rounded-r-full opacity-0 group-hover/user:opacity-100 transition-opacity flex items-center cursor-pointer" title="Usuń z zadania">
                                                         Usuń
                                                     </button>
@@ -102,7 +104,7 @@
                                                     {{ strtoupper(substr($pending->email, 0, 1)) }}
                                                 </div>
                                                 <span class="text-xs text-gray-400 ml-2 font-medium italic truncate max-w-[120px]">{{ $pending->email }}</span>
-                                                @if($isProjectMember)
+                                                @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_task_members'])))
                                                     <button onclick="cancelInvitation({{ $pending->id }})" class="absolute right-0 top-0 bottom-0 bg-red-600/90 text-white text-xs px-2 rounded-r-full opacity-0 group-hover/user:opacity-100 transition-opacity flex items-center cursor-pointer" title="Wycofaj zaproszenie">
                                                         Wycofaj
                                                     </button>
@@ -138,15 +140,29 @@
                                     {{ substr($user->name, 0, 1) }}
                                 </div>
                             @endif
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
-                                <p class="text-xs text-gray-500 truncate">{{ $user->email }}</p>
+                            <div class="flex-1 min-w-0 flex items-center gap-2">
+                                <div>
+                                    <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
+                                    <p class="text-xs text-gray-500 truncate">{{ $user->email }}</p>
+                                </div>
+                                @if(isset($user->pivot) && $user->pivot->role === 'owner')
+                                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Właściciel</span>
+                                @endif
                             </div>
-                            @if($isProjectMember && $user->id !== Auth::id())
-                            <button onclick="removeProjectUser({{ $project->id }}, {{ $user->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">
-                                Usuń
-                            </button>
-                            @endif
+                            
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/puser:opacity-100 transition-opacity flex items-center gap-2">
+                                @if($isOwner && (!isset($user->pivot) || $user->pivot->role !== 'owner'))
+                                <button onclick="window.dispatchEvent(new CustomEvent('open-permissions', { detail: { userId: {{ $user->id }}, userName: '{{ addslashes($user->name) }}', pivot: {{ json_encode($user->pivot ?? []) }} } }))" class="px-2 py-1.5 bg-gray-700/80 hover:bg-gray-600 text-gray-300 rounded-lg cursor-pointer transition shadow-lg" title="Uprawnienia">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                </button>
+                                @endif
+
+                                @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_members'])) && $user->id !== Auth::id() && (!isset($user->pivot) || $user->pivot->role !== 'owner'))
+                                <button onclick="removeProjectUser({{ $project->id }}, {{ $user->id }})" class="px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg cursor-pointer shadow-lg shadow-red-900/20">
+                                    Usuń
+                                </button>
+                                @endif
+                            </div>
                         </li>
                         @endforeach
                         
@@ -159,7 +175,7 @@
                                 <p class="text-sm font-medium text-gray-300 italic truncate">{{ $pending->email }}</p>
                                 <p class="text-[10px] text-gray-500 uppercase tracking-wide font-bold">Oczekujący</p>
                             </div>
-                            @if($isProjectMember)
+                            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_members'])))
                             <button onclick="cancelInvitation({{ $pending->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">
                                 Wycofaj
                             </button>
@@ -684,6 +700,145 @@
                     }
                 }
             }));
+
+            Alpine.data('permissionsModal', () => ({
+                isOpen: false,
+                userId: null,
+                userName: '',
+                isSubmitting: false,
+                message: '',
+                isSuccess: false,
+                perms: {
+                    can_add_members: false,
+                    can_remove_members: false,
+                    can_edit_project: false,
+                    can_create_tasks: false,
+                    can_edit_tasks: false,
+                    can_add_task_members: false,
+                    can_remove_task_members: false
+                },
+                
+                init() {
+                    this.$watch('isOpen', value => {
+                        if (value) document.body.style.overflow = 'hidden';
+                        else document.body.style.overflow = '';
+                    });
+                },
+                
+                openModal(e) {
+                    const data = e.detail;
+                    this.userId = data.userId;
+                    this.userName = data.userName;
+                    this.message = '';
+                    
+                    const pivot = data.pivot || {};
+                    this.perms.can_add_members = !!pivot.can_add_members;
+                    this.perms.can_remove_members = !!pivot.can_remove_members;
+                    this.perms.can_edit_project = !!pivot.can_edit_project;
+                    this.perms.can_create_tasks = !!pivot.can_create_tasks;
+                    this.perms.can_edit_tasks = !!pivot.can_edit_tasks;
+                    this.perms.can_add_task_members = !!pivot.can_add_task_members;
+                    this.perms.can_remove_task_members = !!pivot.can_remove_task_members;
+                    
+                    this.isOpen = true;
+                },
+
+                async submitPermissions() {
+                    this.isSubmitting = true;
+                    this.message = '';
+                    try {
+                        const res = await fetch(`/projects/{{ $project->id }}/permissions/${this.userId}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify(this.perms)
+                        });
+                        const data = await res.json();
+                        
+                        if (res.ok) {
+                            this.isSuccess = true;
+                            this.message = 'Uprawnienia zapisane pomyślnie.';
+                            setTimeout(() => window.location.reload(), 800);
+                        } else {
+                            this.isSuccess = false;
+                            this.message = data.message || 'Wystąpił błąd przy zapisie.';
+                        }
+                    } catch (e) {
+                        this.isSuccess = false;
+                        this.message = 'Błąd połączenia z serwerem.';
+                    } finally {
+                        this.isSubmitting = false;
+                    }
+                }
+            }));
         });
     </script>
+
+    <!-- Modal Uprawnień (Alpine.js) -->
+    <div x-data="permissionsModal()" 
+         x-show="isOpen"
+         x-on:open-permissions.window="openModal($event)"
+         style="display:none;" 
+         class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="isOpen" x-transition.opacity class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm transition-opacity" @click="isOpen = false"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            
+            <div x-show="isOpen" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 class="inline-block align-bottom bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full border border-gray-700">
+                <form @submit.prevent="submitPermissions">
+                    <div class="bg-gray-800 px-6 pt-6 pb-4">
+                        <h3 class="text-xl font-bold text-white mb-2">Uprawnienia członka</h3>
+                        <p class="text-gray-400 text-sm mb-6">Dostosuj uprawnienia dla użytkownika <strong class="text-indigo-400" x-text="userName"></strong>.</p>
+                        
+                        <div class="space-y-4">
+                            <template x-for="(label, key) in {
+                                can_add_members: 'Dodawanie członków projektu',
+                                can_remove_members: 'Usuwanie członków projektu',
+                                can_edit_project: 'Edycja szczegółów projektu',
+                                can_create_tasks: 'Tworzenie nowych zadań',
+                                can_edit_tasks: 'Edycja i usuwanie zadań',
+                                can_add_task_members: 'Dodawanie osób do zadań',
+                                can_remove_task_members: 'Usuwanie osób z zadań'
+                            }">
+                                <label class="flex items-center justify-between p-3 bg-gray-900/50 rounded-xl border border-gray-700/50 cursor-pointer hover:bg-gray-700/50 transition">
+                                    <span class="text-sm font-medium text-gray-300" x-text="label"></span>
+                                    <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                        <input type="checkbox" x-model="perms[key]" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-gray-400 appearance-none cursor-pointer transition-transform duration-200 ease-in-out focus:outline-none focus:ring-0 focus:ring-offset-0" style="top: 0.125rem; left: 0.125rem;" />
+                                        <label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-400 cursor-pointer transition-colors duration-200 ease-in-out"></label>
+                                    </div>
+                                </label>
+                            </template>
+                        </div>
+                        
+                        <div x-show="message" x-text="message" :class="isSuccess ? 'text-green-400' : 'text-red-400'" class="text-sm mt-4 font-medium" style="display: none;"></div>
+                    </div>
+                    <div class="bg-gray-900/50 px-6 py-4 flex flex-row-reverse gap-3 border-t border-gray-700/50">
+                        <button type="submit" :disabled="isSubmitting" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-transparent px-5 py-2.5 bg-indigo-600 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none transition-colors cursor-pointer disabled:opacity-50">
+                            <span x-show="!isSubmitting">Zapisz zmiany</span>
+                            <span x-show="isSubmitting">Zapisywanie...</span>
+                        </button>
+                        <button type="button" @click="isOpen = false" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-gray-600 px-5 py-2.5 bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 focus:outline-none transition-colors cursor-pointer">
+                            Anuluj
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .toggle-checkbox:checked { right: 0; left: unset; transform: translateX(100%); border-color: #4f46e5; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #4f46e5; }
+        .toggle-checkbox { transition: all 0.3s ease; }
+    </style>
 </x-app-layout>

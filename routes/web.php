@@ -35,6 +35,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('projects', ProjectController::class);
     Route::delete('projects/{project}/users/{user}', [ProjectController::class, 'removeUser'])->name('projects.removeUser');
+    Route::patch('projects/{project}/permissions/{user}', [ProjectController::class, 'updatePermissions'])->name('projects.updatePermissions');
 
     // Katalogi projektów
     Route::get('folders', [ProjectFolderController::class, 'index'])->name('folders.index');

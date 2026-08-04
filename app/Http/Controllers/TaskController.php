@@ -27,10 +27,12 @@ class TaskController extends Controller
         ]);
 
         $project = Project::findOrFail($validated['project_id']);
-        if (!$project->users()->where('user_id', Auth::id())->exists()) {
-            abort(403, 'Unauthorized action.');
+        $permissions = $project->userPermissions(Auth::id());
+        if (!$permissions || !$permissions['can_create_tasks']) {
+            abort(403, 'Brak uprawnień do tworzenia zadań w tym projekcie.');
         }
 
+        $validated['creator_id'] = Auth::id();
         $task = Task::create($validated);
         $task->users()->attach(Auth::id());
 
@@ -48,12 +50,14 @@ class TaskController extends Controller
         }
 
         $projectUsers = $task->project->users;
-        $taskUsers = $task->users;
-        $team = $projectUsers->merge($taskUsers)->unique('id');
+        $taskUsers = $task->users->reject(function ($user) use ($projectUsers) {
+            return $projectUsers->contains('id', $user->id);
+        });
 
         $pendingProject = $task->project->pendingInvitations;
-        $pendingTask = $task->pendingInvitations;
-        $pendingTeam = $pendingProject->merge($pendingTask)->unique('email');
+        $pendingTask = $task->pendingInvitations->reject(function ($pending) use ($pendingProject) {
+            return $pendingProject->contains('email', $pending->email);
+        });
 
         $timeLogs = $task->timeLogs()->with('user')->orderByDesc('start_time')->get();
 
@@ -61,13 +65,18 @@ class TaskController extends Controller
             return response()->json($task);
         }
 
-        return view('tasks.show', compact('task', 'team', 'pendingTeam', 'isProjectMember', 'timeLogs'));
+        $permissions = $task->project->userPermissions($userId);
+        $isOwner = $task->project->isOwner($userId);
+
+        return view('tasks.show', compact('task', 'projectUsers', 'taskUsers', 'pendingProject', 'pendingTask', 'isProjectMember', 'timeLogs', 'permissions', 'isOwner'));
     }
 
     public function update(Request $request, Task $task)
     {
-        if (!$task->users()->where('user_id', Auth::id())->exists()) {
-            abort(403, 'Unauthorized action.');
+        $permissions = $task->project->userPermissions(Auth::id());
+        $isTaskMember = $task->users()->where('user_id', Auth::id())->exists();
+        if (!$isTaskMember && (!$permissions || !$permissions['can_edit_tasks'])) {
+            abort(403, 'Brak uprawnień do edycji zadania.');
         }
 
         $validated = $request->validate([
@@ -81,8 +90,10 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        if (!$task->users()->where('user_id', Auth::id())->exists()) {
-            abort(403, 'Unauthorized action.');
+        $permissions = $task->project->userPermissions(Auth::id());
+        $isTaskMember = $task->users()->where('user_id', Auth::id())->exists();
+        if (!$isTaskMember && (!$permissions || !$permissions['can_edit_tasks'])) {
+            abort(403, 'Brak uprawnień do usunięcia zadania.');
         }
 
         $task->delete();
@@ -91,12 +102,17 @@ class TaskController extends Controller
 
     public function removeUser(Task $task, $userId)
     {
-        // Tylko admin głównego projektu może kogoś wyrzucić z zadania
-        if (!$task->project->users()->where('user_id', Auth::id())->exists()) {
-            abort(403, 'Unauthorized action.');
+        $permissions = $task->project->userPermissions(Auth::id());
+        if (!$permissions || !$permissions['can_remove_task_members']) {
+            abort(403, 'Brak uprawnień do usuwania członków z zadań.');
         }
 
         $user = \App\Models\User::findOrFail($userId);
+        
+        if ($task->creator_id == $userId) {
+            abort(403, 'Nie można usunąć twórcy zadania.');
+        }
+
         $task->users()->detach($userId);
 
         $user->notify(new \App\Notifications\UserRemovedNotification('Task', $task->title));

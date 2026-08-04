@@ -22,7 +22,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     {{ $task->is_completed ? 'Otwórz ponownie' : 'Ukończ zadanie' }}
                 </button>
-                @if($isProjectMember)
+                @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_add_task_members'])))
                 <button onclick="document.getElementById('taskInviteModal').style.display='block'" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.5)] transition-transform transform hover:-translate-y-1 font-semibold flex items-center gap-2 text-sm cursor-pointer border border-indigo-500/50">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     Zaproś do Zadania
@@ -42,7 +42,7 @@
                     <div class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 shadow-xl relative group">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-xl font-bold text-white">O zadaniu</h3>
-                            @if($isProjectMember)
+                            @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_edit_tasks'])))
                             <button onclick="document.getElementById('editTaskModal').style.display='block'" class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg transition opacity-0 group-hover:opacity-100 cursor-pointer">
                                 Edytuj
                             </button>
@@ -139,52 +139,104 @@
                     </div>
                 </div>
 
-                <!-- Panel Boczny: Zespół (Połączeni) -->
-                <div class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 shadow-xl h-fit">
-                    <h3 class="text-xl font-bold text-white mb-6 flex items-center justify-between">
-                        Osoby w Zadaniu
-                        <span class="bg-indigo-500/20 text-indigo-400 py-1 px-3 rounded-full text-sm">{{ count($team) }}</span>
-                    </h3>
-                    
-                    <ul class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                        @foreach($team as $user)
-                        <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative hover:border-gray-600 transition-colors">
-                            @if($user->avatar)
-                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-600 shadow-sm">
-                            @else
-                                <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
-                                    {{ substr($user->name, 0, 1) }}
-                                </div>
-                            @endif
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
-                                <p class="text-[10px] text-gray-500 tracking-wide">{{ $user->email }}</p>
-                            </div>
-                            @if($isProjectMember && $user->id !== Auth::id())
-                                <button onclick="removeTaskUser({{ $task->id }}, {{ $user->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">
-                                    Usuń
-                                </button>
-                            @endif
-                        </li>
-                        @endforeach
+                <!-- Panel Boczny: Zespół -->
+                <div class="space-y-6 h-fit">
+                    <!-- Sekcja: Członkowie projektu -->
+                    <div class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 shadow-xl">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center justify-between">
+                            Członkowie projektu
+                            <span class="bg-indigo-500/20 text-indigo-400 py-1 px-3 rounded-full text-sm">{{ count($projectUsers) }}</span>
+                        </h3>
                         
-                        @foreach($pendingTeam as $pending)
-                        <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 opacity-50 border-dashed relative">
-                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-400 border border-gray-600 shadow-sm">
-                                {{ strtoupper(substr($pending->email, 0, 1)) }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-300 italic truncate">{{ $pending->email }}</p>
-                                <p class="text-[10px] text-gray-500 uppercase tracking-wide font-bold">Oczekujący</p>
-                            </div>
-                            @if($isProjectMember)
-                            <button onclick="cancelInvitation({{ $pending->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">
-                                Wycofaj
-                            </button>
+                        <ul class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            @foreach($projectUsers as $user)
+                            <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative hover:border-gray-600 transition-colors">
+                                @if($user->avatar)
+                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-600 shadow-sm">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
+                                        {{ substr($user->name, 0, 1) }}
+                                    </div>
+                                @endif
+                                <div class="flex-1 min-w-0 flex items-center gap-2">
+                                    <div>
+                                        <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
+                                        <p class="text-[10px] text-gray-500 tracking-wide">{{ $user->email }}</p>
+                                    </div>
+                                    @if($user->id === $task->creator_id)
+                                        <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Twórca zadania</span>
+                                    @endif
+                                </div>
+                            </li>
+                            @endforeach
+                            
+                            @foreach($pendingProject as $pending)
+                            <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 opacity-50 border-dashed relative">
+                                <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-400 border border-gray-600 shadow-sm">
+                                    {{ strtoupper(substr($pending->email, 0, 1)) }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-300 italic truncate">{{ $pending->email }}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-wide font-bold">Oczekujący</p>
+                                </div>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    <!-- Sekcja: Przypisani do zadania -->
+                    <div class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-8 shadow-xl">
+                        <h3 class="text-xl font-bold text-white mb-6 flex items-center justify-between">
+                            Przypisani do zadania
+                            <span class="bg-indigo-500/20 text-indigo-400 py-1 px-3 rounded-full text-sm">{{ count($taskUsers) }}</span>
+                        </h3>
+                        
+                        <ul class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            @foreach($taskUsers as $user)
+                            <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative hover:border-gray-600 transition-colors">
+                                @if($user->avatar)
+                                    <img src="{{ asset('storage/' . $user->avatar) }}" alt="{{ $user->name }}" class="w-10 h-10 rounded-full object-cover border border-gray-600 shadow-sm">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border border-gray-600 shadow-sm">
+                                        {{ substr($user->name, 0, 1) }}
+                                    </div>
+                                @endif
+                                <div class="flex-1 min-w-0 flex items-center gap-2">
+                                    <div>
+                                        <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
+                                        <p class="text-[10px] text-gray-500 tracking-wide">{{ $user->email }}</p>
+                                    </div>
+                                </div>
+                                @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_task_members'])) && $user->id !== Auth::id())
+                                    <button onclick="removeTaskUser({{ $task->id }}, {{ $user->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">
+                                        Usuń
+                                    </button>
+                                @endif
+                            </li>
+                            @endforeach
+                            
+                            @foreach($pendingTask as $pending)
+                            <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 opacity-50 border-dashed relative">
+                                <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-sm font-bold text-gray-400 border border-gray-600 shadow-sm">
+                                    {{ strtoupper(substr($pending->email, 0, 1)) }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-300 italic truncate">{{ $pending->email }}</p>
+                                    <p class="text-[10px] text-gray-500 uppercase tracking-wide font-bold">Oczekujący</p>
+                                </div>
+                                @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_task_members'])))
+                                <button onclick="cancelInvitation({{ $pending->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">
+                                    Wycofaj
+                                </button>
+                                @endif
+                            </li>
+                            @endforeach
+
+                            @if($taskUsers->isEmpty() && $pendingTask->isEmpty())
+                                <p class="text-gray-500 text-sm italic text-center py-4">Brak przypisanych osób spoza projektu.</p>
                             @endif
-                        </li>
-                        @endforeach
-                    </ul>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

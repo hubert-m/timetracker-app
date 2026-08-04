@@ -46,7 +46,16 @@ class ProjectController extends Controller
         ]);
 
         $project = Project::create($validated);
-        $project->users()->attach(Auth::id());
+        $project->users()->attach(Auth::id(), [
+            'role' => 'owner',
+            'can_add_members' => true,
+            'can_remove_members' => true,
+            'can_edit_project' => true,
+            'can_create_tasks' => true,
+            'can_edit_tasks' => true,
+            'can_add_task_members' => true,
+            'can_remove_task_members' => true,
+        ]);
 
         return response()->json($project, 201);
     }
@@ -82,12 +91,16 @@ class ProjectController extends Controller
 
         $pendingInvitations = $project->pendingInvitations()->get();
 
-        return view('projects.show', compact('project', 'users', 'tasks', 'isProjectMember', 'pendingInvitations'));
+        $permissions = $isProjectMember ? $project->userPermissions($userId) : null;
+        $isOwner = $isProjectMember ? $project->isOwner($userId) : false;
+
+        return view('projects.show', compact('project', 'users', 'tasks', 'isProjectMember', 'pendingInvitations', 'permissions', 'isOwner'));
     }
 
     public function update(Request $request, Project $project)
     {
-        if (!$project->users()->where('user_id', Auth::id())->exists()) {
+        $permissions = $project->userPermissions(Auth::id());
+        if (!$permissions || !$permissions['can_edit_project']) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -102,8 +115,8 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        if (!$project->users()->where('user_id', Auth::id())->exists()) {
-            abort(403, 'Unauthorized action.');
+        if (!$project->isOwner(Auth::id())) {
+            abort(403, 'Tylko właściciel może usunąć projekt.');
         }
 
         $project->delete();
@@ -112,8 +125,13 @@ class ProjectController extends Controller
 
     public function removeUser(Project $project, $userId)
     {
-        if (!$project->users()->where('user_id', Auth::id())->exists()) {
-            abort(403, 'Unauthorized action.');
+        $permissions = $project->userPermissions(Auth::id());
+        if (!$permissions || !$permissions['can_remove_members']) {
+            abort(403, 'Brak uprawnień do usuwania członków z projektu.');
+        }
+
+        if ($project->isOwner($userId)) {
+            abort(403, 'Nie można usunąć właściciela z projektu.');
         }
 
         $user = \App\Models\User::findOrFail($userId);
@@ -122,5 +140,30 @@ class ProjectController extends Controller
         $user->notify(new \App\Notifications\UserRemovedNotification('Project', $project->title ?? $project->name));
 
         return response()->json(['message' => 'Użytkownik został usunięty.']);
+    }
+
+    public function updatePermissions(Request $request, Project $project, $userId)
+    {
+        if (!$project->isOwner(Auth::id())) {
+            abort(403, 'Tylko właściciel może zmieniać uprawnienia.');
+        }
+
+        if ($project->isOwner($userId)) {
+            abort(403, 'Nie można zmieniać uprawnień właścicielowi.');
+        }
+
+        $validated = $request->validate([
+            'can_add_members' => 'boolean',
+            'can_remove_members' => 'boolean',
+            'can_edit_project' => 'boolean',
+            'can_create_tasks' => 'boolean',
+            'can_edit_tasks' => 'boolean',
+            'can_add_task_members' => 'boolean',
+            'can_remove_task_members' => 'boolean',
+        ]);
+
+        $project->users()->updateExistingPivot($userId, $validated);
+
+        return response()->json(['message' => 'Uprawnienia zaktualizowane.']);
     }
 }

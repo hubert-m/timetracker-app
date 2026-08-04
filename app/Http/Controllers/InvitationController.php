@@ -94,9 +94,11 @@ class InvitationController extends Controller
         $resource = $resourceClass::findOrFail($validated['resource_id']);
 
         if ($validated['resource_type'] === 'Project') {
-            $hasAccess = $resource->users()->where('user_id', Auth::id())->exists();
+            $permissions = $resource->userPermissions(Auth::id());
+            $hasAccess = $permissions && $permissions['can_add_members'];
         } elseif ($validated['resource_type'] === 'Task') {
-            $hasAccess = $resource->project->users()->where('user_id', Auth::id())->exists();
+            $permissions = $resource->project->userPermissions(Auth::id());
+            $hasAccess = $permissions && $permissions['can_add_task_members'];
         }
 
         if (!$hasAccess) {
@@ -142,9 +144,11 @@ class InvitationController extends Controller
         $hasAccess = false;
 
         if ($invitation->invitable_type === 'App\Models\Project') {
-            $hasAccess = $resource->users()->where('user_id', Auth::id())->exists();
+            $permissions = $resource->userPermissions(Auth::id());
+            $hasAccess = $permissions && $permissions['can_remove_members'];
         } elseif ($invitation->invitable_type === 'App\Models\Task') {
-            $hasAccess = $resource->project->users()->where('user_id', Auth::id())->exists();
+            $permissions = $resource->project->userPermissions(Auth::id());
+            $hasAccess = $permissions && $permissions['can_remove_task_members'];
         }
 
         if (!$hasAccess) {
