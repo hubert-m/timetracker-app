@@ -6,6 +6,7 @@ use App\Models\ProjectFolder;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProjectFolderController extends Controller
 {
@@ -13,8 +14,15 @@ class ProjectFolderController extends Controller
     {
         $folders = ProjectFolder::where('user_id', Auth::id())
             ->orderBy('position')
-            ->withCount('projects')
             ->get();
+
+        // Doliczymy projekty per folder dla bieżącego usera
+        $folders->each(function ($folder) {
+            $folder->projects_count = DB::table('project_folder_assignments')
+                ->where('folder_id', $folder->id)
+                ->where('user_id', Auth::id())
+                ->count();
+        });
 
         return response()->json($folders);
     }
@@ -60,8 +68,10 @@ class ProjectFolderController extends Controller
             abort(403);
         }
 
-        // Projekty z tego folderu wracają do "bez folderu"
-        Project::where('folder_id', $folder->id)->update(['folder_id' => null]);
+        // Usunięcie przypisań tego folderu (cascade na FK też to zrobi, ale explicite)
+        DB::table('project_folder_assignments')
+            ->where('folder_id', $folder->id)
+            ->delete();
 
         $folder->delete();
 
@@ -75,21 +85,28 @@ class ProjectFolderController extends Controller
             'folder_id' => 'required|integer|exists:project_folders,id',
         ]);
 
+        $userId = Auth::id();
+
+        // Sprawdź czy folder należy do bieżącego usera
         $folder = ProjectFolder::where('id', $validated['folder_id'])
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->firstOrFail();
 
         $project = Project::findOrFail($validated['project_id']);
 
         // Sprawdź czy user ma dostęp do projektu
-        $hasAccess = $project->users()->where('user_id', Auth::id())->exists()
-            || $project->tasks()->whereHas('users', fn($q) => $q->where('user_id', Auth::id()))->exists();
+        $hasAccess = $project->users()->where('user_id', $userId)->exists()
+            || $project->tasks()->whereHas('users', fn($q) => $q->where('user_id', $userId))->exists();
 
         if (!$hasAccess) {
             abort(403);
         }
 
-        $project->update(['folder_id' => $folder->id]);
+        // Upsert — zaktualizuj istniejące przypisanie lub utwórz nowe
+        DB::table('project_folder_assignments')->updateOrInsert(
+            ['user_id' => $userId, 'project_id' => $project->id],
+            ['folder_id' => $folder->id, 'updated_at' => now(), 'created_at' => now()]
+        );
 
         return response()->json(['message' => 'Projekt przypisany do katalogu.']);
     }
@@ -100,8 +117,10 @@ class ProjectFolderController extends Controller
             'project_id' => 'required|integer|exists:projects,id',
         ]);
 
-        $project = Project::findOrFail($validated['project_id']);
-        $project->update(['folder_id' => null]);
+        DB::table('project_folder_assignments')
+            ->where('user_id', Auth::id())
+            ->where('project_id', $validated['project_id'])
+            ->delete();
 
         return response()->json(['message' => 'Projekt usunięty z katalogu.']);
     }

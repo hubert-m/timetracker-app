@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\ProjectFolder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
@@ -22,10 +23,19 @@ class ProjectController extends Controller
             ->orderBy('position')
             ->get();
 
+        // Mapka project_id => folder_id dla bieżącego użytkownika
+        $folderAssignments = DB::table('project_folder_assignments')
+            ->where('user_id', $userId)
+            ->pluck('folder_id', 'project_id')
+            ->toArray();
+
+        // Dołóż info o folderze do każdego projektu
+        $foldersById = $folders->keyBy('id');
+
         if (request()->wantsJson()) {
             return response()->json($projects);
         }
-        return view('projects.index', compact('projects', 'folders'));
+        return view('projects.index', compact('projects', 'folders', 'folderAssignments', 'foldersById'));
     }
 
     public function store(Request $request)

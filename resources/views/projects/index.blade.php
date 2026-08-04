@@ -65,29 +65,32 @@
             {{-- Grid projektów --}}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse($projects as $project)
+                @php
+                    $projectFolderId = $folderAssignments[$project->id] ?? null;
+                    $projectFolder = $projectFolderId ? ($foldersById[$projectFolderId] ?? null) : null;
+                @endphp
                 <a href="{{ route('projects.show', $project->id) }}"
                    draggable="true"
-                   x-show="activeFolder === null || {{ $project->folder_id ?? 'null' }} === activeFolder"
+                   x-show="activeFolder === null || getProjectFolderId({{ $project->id }}) === activeFolder"
                    x-transition:enter="transition ease-out duration-200"
                    x-transition:enter-start="opacity-0 scale-95"
                    x-transition:enter-end="opacity-100 scale-100"
                    @dragstart="startDrag($event, {{ $project->id }})"
                    @dragend="endDrag($event)"
                    class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 shadow-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:border-indigo-500/30 transition-all duration-300 transform hover:-translate-y-1 group relative overflow-hidden flex flex-col h-full cursor-grab active:cursor-grabbing"
-                   data-project-id="{{ $project->id }}"
-                   data-folder-id="{{ $project->folder_id }}">
+                   data-project-id="{{ $project->id }}">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <svg class="w-12 h-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                     </div>
-                    {{-- Folder badge --}}
-                    @if($project->folder_id && $project->folder)
+                    {{-- Folder badge per-user --}}
+                    @if($projectFolder)
                         <div class="absolute top-4 left-4">
-                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md" style="background-color: {{ $project->folder->color }}20; color: {{ $project->folder->color }}">
-                                {{ $project->folder->name }}
+                            <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md" style="background-color: {{ $projectFolder->color }}20; color: {{ $projectFolder->color }}">
+                                {{ $projectFolder->name }}
                             </span>
                         </div>
                     @endif
-                    <div class="mb-4 {{ $project->folder_id ? 'mt-4' : '' }}">
+                    <div class="mb-4 {{ $projectFolder ? 'mt-4' : '' }}">
                         <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg mb-3" style="background-color: {{ $project->color ?? '#6366f1' }}">
                             {{ strtoupper(substr($project->name ?? $project->title, 0, 1)) }}
                         </div>
@@ -218,7 +221,21 @@
                 colorPalette: ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6'],
                 
                 folders: @json($folders),
-                projects: @json($projects->map(fn($p) => ['id' => $p->id, 'folder_id' => $p->folder_id])),
+                // Przypisania per-user: { project_id: folder_id, ... }
+                assignments: @json($folderAssignments),
+                projects: @json($projects->map(fn($p) => ['id' => $p->id])),
+
+                // Helper: pobierz folder_id dla danego projektu (z przypisań bieżącego usera)
+                getProjectFolderId(projectId) {
+                    return this.assignments[projectId] || null;
+                },
+
+                init() {
+                    // Dodaj folder_id do projektu na podstawie przypisań
+                    this.projects.forEach(p => {
+                        p.folder_id = this.assignments[p.id] || null;
+                    });
+                },
 
                 // Drag & Drop
                 startDrag(e, projectId) {
@@ -264,12 +281,14 @@
                             body: JSON.stringify(body)
                         });
                         if (res.ok) {
-                            // Aktualizacja client-side
+                            // Aktualizacja client-side per-user
+                            if (folderId === null) {
+                                delete this.assignments[projectId];
+                            } else {
+                                this.assignments[projectId] = folderId;
+                            }
                             const proj = this.projects.find(p => p.id === projectId);
                             if (proj) proj.folder_id = folderId;
-                            // Aktualizacja data-folder-id na karcie
-                            const card = document.querySelector(`[data-project-id="${projectId}"]`);
-                            if (card) card.setAttribute('data-folder-id', folderId || '');
                             window.location.reload();
                         }
                     } catch(err) {
@@ -311,6 +330,10 @@
                         });
                         if (res.ok) {
                             this.folders = this.folders.filter(f => f.id !== folderId);
+                            // Wyczyść przypisania tego folderu
+                            Object.keys(this.assignments).forEach(pid => {
+                                if (this.assignments[pid] === folderId) delete this.assignments[pid];
+                            });
                             this.projects.forEach(p => { if (p.folder_id === folderId) p.folder_id = null; });
                             if (this.activeFolder === folderId) this.activeFolder = null;
                             window.location.reload();

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ProjectFolder extends Model
 {
@@ -13,8 +14,15 @@ class ProjectFolder extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function projects()
+    /**
+     * Pobierz projekty przypisane do tego folderu (przez tabelę piwotową).
+     */
+    public function assignedProjects()
     {
-        return $this->hasMany(Project::class, 'folder_id');
+        return Project::whereIn('id', function ($query) {
+            $query->select('project_id')
+                ->from('project_folder_assignments')
+                ->where('folder_id', $this->id);
+        });
     }
 }
