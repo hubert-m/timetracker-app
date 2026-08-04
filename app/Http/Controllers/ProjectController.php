@@ -13,7 +13,7 @@ class ProjectController extends Controller
     public function index()
     {
         $userId = Auth::id();
-        $projects = Project::whereHas('users', function ($query) use ($userId) {
+        $projects = Project::with('users')->whereHas('users', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })->orWhereHas('tasks.users', function ($query) use ($userId) {
             $query->where('user_id', $userId);

@@ -146,7 +146,15 @@
                                     <p class="text-xs text-gray-500 truncate">{{ $user->email }}</p>
                                 </div>
                                 @if(isset($user->pivot) && $user->pivot->role === 'owner')
-                                    <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">Właściciel</span>
+                                    <div class="relative flex items-center justify-center group/crown cursor-default ml-auto mr-2">
+                                        <svg class="w-5 h-5 text-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.6)]" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"></path>
+                                        </svg>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-gray-800 text-yellow-500 text-[10px] uppercase font-extrabold rounded-md shadow-xl opacity-0 group-hover/crown:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-yellow-500/20 z-50 tracking-wider">
+                                            Właściciel
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
                                 @endif
                             </div>
                             

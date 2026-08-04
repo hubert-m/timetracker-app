@@ -148,7 +148,7 @@
                             <span class="bg-indigo-500/20 text-indigo-400 py-1 px-3 rounded-full text-sm">{{ count($projectUsers) }}</span>
                         </h3>
                         
-                        <ul class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        <ul class="space-y-4">
                             @foreach($projectUsers as $user)
                             <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative hover:border-gray-600 transition-colors">
                                 @if($user->avatar)
@@ -164,7 +164,15 @@
                                         <p class="text-[10px] text-gray-500 tracking-wide">{{ $user->email }}</p>
                                     </div>
                                     @if($user->id === $task->creator_id)
-                                        <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Twórca zadania</span>
+                                    <div class="relative flex items-center justify-center group/creator cursor-default ml-auto mr-2">
+                                        <svg class="w-5 h-5 text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.6)]" fill="currentColor" viewBox="0 0 24 24">
+                                            <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd" />
+                                        </svg>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-gray-800 text-emerald-500 text-[10px] uppercase font-extrabold rounded-md shadow-xl opacity-0 group-hover/creator:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-emerald-500/20 z-50 tracking-wider">
+                                            Twórca zadania
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
                                     @endif
                                 </div>
                             </li>
@@ -191,7 +199,7 @@
                             <span class="bg-indigo-500/20 text-indigo-400 py-1 px-3 rounded-full text-sm">{{ count($taskUsers) }}</span>
                         </h3>
                         
-                        <ul class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        <ul class="space-y-4">
                             @foreach($taskUsers as $user)
                             <li class="group/puser flex items-center gap-4 p-3 bg-gray-900/50 rounded-xl border border-gray-700/30 relative hover:border-gray-600 transition-colors">
                                 @if($user->avatar)
@@ -206,6 +214,17 @@
                                         <p class="text-sm font-semibold text-white truncate">{{ $user->name }}</p>
                                         <p class="text-[10px] text-gray-500 tracking-wide">{{ $user->email }}</p>
                                     </div>
+                                    @if($user->id === $task->creator_id)
+                                    <div class="relative flex items-center justify-center group/creator cursor-default ml-auto mr-2">
+                                        <svg class="w-5 h-5 text-emerald-500 drop-shadow-[0_0_5px_rgba(16,185,129,0.6)]" fill="currentColor" viewBox="0 0 24 24">
+                                            <path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.006 5.404.434c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.434 2.082-5.005Z" clip-rule="evenodd" />
+                                        </svg>
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1 bg-gray-800 text-emerald-500 text-[10px] uppercase font-extrabold rounded-md shadow-xl opacity-0 group-hover/creator:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-emerald-500/20 z-50 tracking-wider">
+                                            Twórca zadania
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
                                 @if($isProjectMember && ($isOwner || ($permissions && $permissions['can_remove_task_members'])) && $user->id !== Auth::id())
                                     <button onclick="removeTaskUser({{ $task->id }}, {{ $user->id }})" class="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white font-medium text-xs rounded-lg opacity-0 group-hover/puser:opacity-100 transition-opacity cursor-pointer shadow-lg shadow-red-900/20">

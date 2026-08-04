@@ -15,8 +15,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- Sticky Folder Bar --}}
-            <div class="sticky top-20 z-30 mb-8 -mx-4 px-4 py-4 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
-                <div class="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-none">
+            <div class="sticky top-20 z-30 mb-8 -mx-4 px-4 py-1 bg-gray-900/80 backdrop-blur-xl border-b border-gray-800/50">
+                <div class="flex items-center gap-3 overflow-x-auto pt-3 pb-4 scrollbar-none">
                     {{-- Chip "Wszystkie" --}}
                     <button @click="activeFolder = null"
                             @dragover.prevent="dragOverFolder($event, null)"
@@ -31,7 +31,7 @@
 
                     {{-- Dynamiczne foldery --}}
                     <template x-for="folder in folders" :key="folder.id">
-                        <div class="flex-shrink-0 relative group">
+                        <div class="flex-shrink-0 relative group hover:z-50">
                             <button @click="activeFolder = folder.id"
                                     @dragover.prevent="dragOverFolder($event, folder.id)"
                                     @dragleave="dragLeaveFolder($event)"
@@ -46,7 +46,7 @@
                             </button>
                             {{-- Delete button on hover --}}
                             <button @click.stop="deleteFolder(folder.id)"
-                                    class="absolute -top-2 -right-2 w-5 h-5 bg-red-600 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-lg hover:bg-red-500"
+                                    class="absolute -top-2 -right-2 w-5 h-5 bg-red-600 rounded-full text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shadow-lg hover:bg-red-500 z-[60]"
                                     title="Usuń katalog">
                                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                             </button>
@@ -77,7 +77,12 @@
                    x-transition:enter-end="opacity-100 scale-100"
                    @dragstart="startDrag($event, {{ $project->id }})"
                    @dragend="endDrag($event)"
-                   class="bg-gray-800/40 backdrop-blur-md border border-gray-700/50 rounded-3xl p-6 shadow-xl hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:border-indigo-500/30 transition-all duration-300 transform hover:-translate-y-1 group relative overflow-hidden flex flex-col h-full cursor-grab active:cursor-grabbing"
+                   @mouseenter="hovered = true"
+                   @mouseleave="hovered = false"
+                   x-data="{ hovered: false }"
+                   :style="hovered ? 'box-shadow: 0 0 20px {{ $projectFolder ? $projectFolder->color.'40' : 'rgba(99,102,241,0.15)' }}; border-color: {{ $projectFolder ? $projectFolder->color.'80' : 'rgba(99,102,241,0.3)' }};' : 'border-color: {{ $projectFolder ? $projectFolder->color.'40' : 'rgba(55,65,81,0.5)' }};'"
+                   style="background-color: {{ $projectFolder ? $projectFolder->color.'15' : 'rgba(31, 41, 55, 0.4)' }}"
+                   class="backdrop-blur-md border rounded-3xl p-6 shadow-xl transition-all duration-300 transform hover:-translate-y-1 group relative overflow-hidden flex flex-col h-full cursor-grab active:cursor-grabbing"
                    data-project-id="{{ $project->id }}">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <svg class="w-12 h-12 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
@@ -91,11 +96,20 @@
                         </div>
                     @endif
                     <div class="mb-4 {{ $projectFolder ? 'mt-4' : '' }}">
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg mb-3" style="background-color: {{ $project->color ?? '#6366f1' }}">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg mb-3 shadow-lg" style="background-color: {{ $projectFolder ? $projectFolder->color : ($project->color ?? '#6366f1') }}">
                             {{ strtoupper(substr($project->name ?? $project->title, 0, 1)) }}
                         </div>
                         <h3 class="text-xl font-bold text-white">{{ $project->name ?? $project->title }}</h3>
-                        <p class="text-gray-400 text-sm mt-2 line-clamp-3">{{ $project->description ?? 'Brak opisu projektu.' }}</p>
+                        <p class="text-gray-400 text-sm mt-2 line-clamp-2">{{ $project->description ?? 'Brak opisu projektu.' }}</p>
+                        @php
+                            $owner = $project->users->where('pivot.role', 'owner')->first();
+                        @endphp
+                        <p class="text-xs text-gray-500 mt-3 font-medium">
+                            Właściciel: 
+                            <span class="text-gray-300">
+                                {{ $owner ? ($owner->id === Auth::id() ? 'Ty' : $owner->name) : 'Brak' }}
+                            </span>
+                        </p>
                     </div>
                     <div class="mt-auto pt-4 border-t border-gray-700/50 flex justify-between items-center">
                         <span class="text-xs font-semibold text-gray-500">Członkowie: {{ $project->users()->count() }}</span>
