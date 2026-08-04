@@ -28,8 +28,10 @@ class AssignPendingInvitations
                 $url = $resourceType === 'Project' ? route('projects.show', $invitable->id) : route('tasks.show', $invitable->id);
                 $inviterName = $invitation->inviter ? $invitation->inviter->name : 'Członka platformy';
 
+                $projectName = $resourceType === 'Task' ? ($invitable->project->title ?? $invitable->project->name ?? null) : null;
+
                 // Powiadomienie dla nowo-zarejestrowanego o przypisaniu z kolejki
-                $user->notify(new NewInvitationNotification($resourceName, $resourceType, $url, $inviterName));
+                $user->notify(new NewInvitationNotification($resourceName, $resourceType, $url, $inviterName, $projectName));
 
                 // Powiadomienie dla autora zaproszenia
                 if ($invitation->inviter) {

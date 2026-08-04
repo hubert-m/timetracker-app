@@ -113,7 +113,9 @@
                     </div>
                     <div class="mt-auto pt-4 border-t border-gray-700/50 flex justify-between items-center">
                         <span class="text-xs font-semibold text-gray-500">Członkowie: {{ $project->users()->count() }}</span>
-                        <span class="text-xs font-bold text-indigo-400 group-hover:text-indigo-300">Zarządzaj &rarr;</span>
+                        <span class="text-xs font-bold text-indigo-400 group-hover:text-indigo-300">
+                            {{ $owner && $owner->id === Auth::id() ? 'Zarządzaj' : 'Zobacz' }} &rarr;
+                        </span>
                     </div>
                 </a>
                 @empty
@@ -245,6 +247,13 @@
                 },
 
                 init() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.has('folder')) {
+                        this.activeFolder = parseInt(urlParams.get('folder'));
+                        // Clean up URL without reloading
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+
                     // Dodaj folder_id do projektu na podstawie przypisań
                     this.projects.forEach(p => {
                         p.folder_id = this.assignments[p.id] || null;
@@ -361,6 +370,12 @@
                 async submitForm() {
                     this.isSubmitting = true;
                     this.errorMessage = '';
+                    
+                    const payload = { ...this.form };
+                    if (this.activeFolder) {
+                        payload.folder_id = this.activeFolder;
+                    }
+
                     try {
                         const res = await fetch('{{ route('projects.store') }}', {
                             method: 'POST',
@@ -369,11 +384,15 @@
                                 'Accept': 'application/json',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
-                            body: JSON.stringify(this.form)
+                            body: JSON.stringify(payload)
                         });
                         
                         if (res.ok) {
-                            window.location.reload();
+                            if (this.activeFolder) {
+                                window.location.href = window.location.pathname + '?folder=' + this.activeFolder;
+                            } else {
+                                window.location.reload();
+                            }
                         } else {
                             const data = await res.json();
                             this.errorMessage = data.message || 'Wystąpił błąd podczas zapisywania.';

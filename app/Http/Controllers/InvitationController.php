@@ -114,11 +114,16 @@ class InvitationController extends Controller
                 ? route('projects.show', $resource->id) 
                 : route('tasks.show', $resource->id);
 
+            $projectName = $validated['resource_type'] === 'Task' 
+                ? ($resource->project->title ?? $resource->project->name ?? null) 
+                : null;
+
             $invitedUser->notify(new NewInvitationNotification(
                 $resource->title ?? $resource->name ?? 'Zasób',
                 $validated['resource_type'],
                 $url,
-                Auth::user()->name
+                Auth::user()->name,
+                $projectName
             ));
 
             return response()->json(['message' => 'Użytkownik został przypisany do zasobu oraz powiadomiony.']);

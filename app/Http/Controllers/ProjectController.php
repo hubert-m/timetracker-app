@@ -43,6 +43,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'folder_id' => 'nullable|integer|exists:project_folders,id',
         ]);
 
         $project = Project::create($validated);
@@ -56,6 +57,14 @@ class ProjectController extends Controller
             'can_add_task_members' => true,
             'can_remove_task_members' => true,
         ]);
+
+        if (!empty($validated['folder_id'])) {
+            DB::table('project_folder_assignments')->insert([
+                'project_id' => $project->id,
+                'folder_id' => $validated['folder_id'],
+                'user_id' => Auth::id(),
+            ]);
+        }
 
         return response()->json($project, 201);
     }

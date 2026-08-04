@@ -15,16 +15,18 @@ class NewInvitationNotification extends Notification
     public $resourceType;
     public $url;
     public $inviterName;
+    public $projectName;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($resourceName, $resourceType, $url, $inviterName)
+    public function __construct($resourceName, $resourceType, $url, $inviterName, $projectName = null)
     {
         $this->resourceName = $resourceName;
         $this->resourceType = $resourceType;
         $this->url = $url;
         $this->inviterName = $inviterName;
+        $this->projectName = $projectName;
     }
 
     /**
@@ -45,11 +47,12 @@ class NewInvitationNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $typeName = $this->resourceType === 'Project' ? 'projektu' : 'zadania';
+        $inProject = $this->projectName ? " w projekcie: **{$this->projectName}**" : "";
         
         return (new MailMessage)
                     ->subject('Nowe zaproszenie od ' . $this->inviterName)
                     ->greeting('Witaj ' . $notifiable->name . '!')
-                    ->line("Użytkownik **{$this->inviterName}** zaprosił Cię do {$typeName}: **{$this->resourceName}**.")
+                    ->line("Użytkownik **{$this->inviterName}** zaprosił Cię do {$typeName}: **{$this->resourceName}**{$inProject}.")
                     ->action('Przejdź do ' . $typeName, $this->url)
                     ->line('Zaloguj się do aplikacji, aby sprawdzić szczegóły zaproszenia.');
     }
@@ -62,9 +65,10 @@ class NewInvitationNotification extends Notification
     public function toArray(object $notifiable): array
     {
         $typeName = $this->resourceType === 'Project' ? 'projektu' : 'zadania';
+        $inProject = $this->projectName ? " w projekcie: {$this->projectName}" : "";
         
         return [
-            'message' => "{$this->inviterName} zaprosił Cię do {$typeName}: {$this->resourceName}",
+            'message' => "{$this->inviterName} zaprosił Cię do {$typeName}: {$this->resourceName}{$inProject}",
             'url' => $this->url,
             'icon' => $this->resourceType === 'Project' ? 'briefcase' : 'check-circle'
         ];
