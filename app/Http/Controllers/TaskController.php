@@ -59,7 +59,7 @@ class TaskController extends Controller
             return $pendingProject->contains('email', $pending->email);
         });
 
-        $timeLogs = $task->timeLogs()->with('user')->orderByDesc('start_time')->get();
+        $timeLogs = $task->timeLogs()->with('user')->orderByDesc('created_at')->get();
 
         if (request()->wantsJson()) {
             return response()->json($task);

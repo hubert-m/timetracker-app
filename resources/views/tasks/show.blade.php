@@ -59,7 +59,9 @@
                                 @php
                                     $totalSeconds = 0;
                                     foreach($timeLogs as $log) {
-                                        if($log->end_time) {
+                                        if ($log->duration_minutes > 0) {
+                                            $totalSeconds += $log->duration_minutes * 60;
+                                        } elseif ($log->start_time && $log->end_time) {
                                             $totalSeconds += \Carbon\Carbon::parse($log->start_time)->diffInSeconds(\Carbon\Carbon::parse($log->end_time));
                                         }
                                     }
@@ -112,6 +114,9 @@
                                                         Wpis ręczny
                                                     @endif
                                                 </span>
+                                            </p>
+                                            <p class="text-[10px] text-gray-500 mt-0.5">
+                                                Zapisano: {{ $log->updated_at->timezone(Auth::user()->timezone ?? 'Europe/Warsaw')->format('d.m.Y H:i') }}
                                             </p>
                                         </div>
                                     </div>

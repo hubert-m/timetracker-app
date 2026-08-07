@@ -194,7 +194,7 @@ class TimeLogController extends Controller
             'start_time' => null,
             'end_time' => null,
             'duration_minutes' => $validated['duration_minutes'],
-            'description' => 'Zaktualizowano z zestawienia godzin',
+            'description' => null,
         ]);
 
         return response()->json(['message' => 'Czas zaktualizowany.', 'time_log' => $timeLog]);
