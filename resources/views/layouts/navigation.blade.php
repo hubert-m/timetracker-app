@@ -21,10 +21,39 @@
                         Projekty
                     </a>
                     
-                    <button type="button" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors hover:bg-gray-800/50 cursor-pointer flex items-center gap-2 font-medium">
-                        <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        Zaraportuj czas
-                    </button>
+                    <!-- Zaraportuj czas Dropdown -->
+                    <div class="relative" x-data="{ timeDropdownOpen: false }" @click.away="timeDropdownOpen = false">
+                        <button @click="timeDropdownOpen = !timeDropdownOpen" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors hover:bg-gray-800/50 cursor-pointer flex items-center gap-2 font-medium">
+                            <svg class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Zaraportuj czas
+                            <svg class="w-4 h-4 text-gray-500 transition-transform duration-200" :class="{'rotate-180': timeDropdownOpen}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div x-show="timeDropdownOpen"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute left-0 top-12 mt-2 w-56 bg-gray-800 rounded-xl border border-gray-700 shadow-2xl py-2 overflow-hidden z-50"
+                             style="display: none;">
+                            <button type="button" @click="$dispatch('open-track-time-modal'); timeDropdownOpen = false" class="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Trackuj czas
+                            </button>
+                            <button type="button" @click="$dispatch('open-manual-time-modal'); timeDropdownOpen = false" class="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors cursor-pointer">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Wpisz czas
+                            </button>
+                            <div class="border-t border-gray-700 my-1"></div>
+                            <a href="{{ route('timesheet.index') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
+                                <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Zestawienia godzin
+                            </a>
+                        </div>
+                    </div>
                     
                     <button type="button" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors hover:bg-gray-800/50 cursor-pointer flex items-center gap-2 font-medium">
                         <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -148,6 +177,16 @@
             </a>
             <a href="{{ route('projects.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('projects.*') ? 'border-indigo-400 text-white bg-gray-800' : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-800 hover:border-gray-600' }} text-base font-medium transition-colors">
                 Projekty
+            </a>
+            <div class="px-3 py-2 text-sm font-semibold text-gray-500 uppercase tracking-wider mt-2">Zaraportuj czas</div>
+            <button type="button" @click="$dispatch('open-track-time-modal'); open = false" class="w-full text-left block pl-6 pr-4 py-2 border-l-4 border-transparent text-emerald-400 hover:text-white hover:bg-gray-800 text-base font-medium transition-colors cursor-pointer">
+                Trackuj czas
+            </button>
+            <button type="button" @click="$dispatch('open-manual-time-modal'); open = false" class="w-full text-left block pl-6 pr-4 py-2 border-l-4 border-transparent text-blue-400 hover:text-white hover:bg-gray-800 text-base font-medium transition-colors cursor-pointer">
+                Wpisz czas
+            </button>
+            <a href="{{ route('timesheet.index') }}" class="block pl-6 pr-4 py-2 border-l-4 border-transparent text-amber-400 hover:text-white hover:bg-gray-800 text-base font-medium transition-colors">
+                Zestawienia godzin
             </a>
         </div>
         

@@ -19,6 +19,16 @@ class Project extends Model
             ->first();
     }
 
+    /**
+     * Relacja Eloquent do katalogów.
+     */
+    public function folders()
+    {
+        return $this->belongsToMany(ProjectFolder::class, 'project_folder_assignments', 'project_id', 'folder_id')
+                    ->withPivot('user_id')
+                    ->withTimestamps();
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class)->withPivot(

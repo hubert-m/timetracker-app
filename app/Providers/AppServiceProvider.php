@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,24 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Blade::directive('userTime', function ($expression) {
+            // $expression format: ($date, $format)
+            return "<?php 
+                if (auth()->check()) {
+                    \$timezone = auth()->user()->timezone ?? 'Europe/Warsaw';
+                } else {
+                    \$timezone = 'Europe/Warsaw';
+                }
+                \$args = explode(',', \$expression);
+                \$date = trim(\$args[0] ?? 'null');
+                \$format = isset(\$args[1]) ? trim(\$args[1], \" '\"\"\") : 'Y-m-d H:i:s';
+                
+                if (\$date !== 'null' && \$date) {
+                    echo \Carbon\Carbon::parse(\$date)->timezone(\$timezone)->format(\$format);
+                }
+            ?>";
+        });
+
         \Illuminate\Auth\Notifications\ResetPassword::toMailUsing(function ($notifiable, $token) {
             return (new \Illuminate\Notifications\Messages\MailMessage)
                 ->subject('Powiadomienie o resecie hasła')

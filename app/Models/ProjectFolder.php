@@ -25,4 +25,14 @@ class ProjectFolder extends Model
                 ->where('folder_id', $this->id);
         });
     }
+
+    /**
+     * Relacja Eloquent do projektów przypisanych do tego katalogu.
+     */
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_folder_assignments', 'folder_id', 'project_id')
+                    ->withPivot('user_id')
+                    ->withTimestamps();
+    }
 }

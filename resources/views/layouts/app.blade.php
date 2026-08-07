@@ -45,6 +45,10 @@
             <main class="flex-grow">
                 {{ $slot }}
             </main>
+            
+            @auth
+                @include('components.time-tracker-modals')
+            @endauth
         </div>
     </body>
 </html>

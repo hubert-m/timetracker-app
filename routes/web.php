@@ -59,11 +59,15 @@ Route::middleware('auth')->group(function () {
         return response()->json(['success' => true]);
     })->name('notifications.read');
 
+    Route::get('time-logs/resources', [\App\Http\Controllers\TimeLogController::class, 'resources'])->name('time-logs.resources');
+    Route::get('time-logs/active', [\App\Http\Controllers\TimeLogController::class, 'activeTimer'])->name('time-logs.active');
     Route::post('time-logs/start', [\App\Http\Controllers\TimeLogController::class, 'start'])->name('time-logs.start');
     Route::post('time-logs/{timeLog}/stop', [\App\Http\Controllers\TimeLogController::class, 'stop'])->name('time-logs.stop');
     Route::post('time-logs', [\App\Http\Controllers\TimeLogController::class, 'store'])->name('time-logs.store');
+    Route::post('time-logs/update-inline', [\App\Http\Controllers\TimeLogController::class, 'updateInline'])->name('time-logs.update-inline');
 
     Route::get('reports/pdf', [\App\Http\Controllers\ReportController::class, 'download'])->name('reports.pdf');
+    Route::get('reports/timesheet', [\App\Http\Controllers\ReportController::class, 'timesheet'])->name('timesheet.index');
 });
 
 require __DIR__.'/auth.php';

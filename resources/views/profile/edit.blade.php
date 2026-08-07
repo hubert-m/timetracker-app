@@ -114,6 +114,33 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label for="timezone" class="block text-sm font-medium text-gray-300 mb-1.5">Strefa czasowa</label>
+                            <select id="timezone" name="timezone" class="w-full bg-gray-900/80 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow">
+                                @php
+                                    $timezones = [
+                                        'Europe/Warsaw' => 'Europa / Warszawa',
+                                        'Europe/London' => 'Europa / Londyn',
+                                        'Europe/Paris' => 'Europa / Paryż',
+                                        'America/New_York' => 'Ameryka / Nowy Jork',
+                                        'America/Chicago' => 'Ameryka / Chicago',
+                                        'America/Los_Angeles' => 'Ameryka / Los Angeles',
+                                        'Asia/Tokyo' => 'Azja / Tokio',
+                                        'Asia/Dubai' => 'Azja / Dubaj',
+                                        'Australia/Sydney' => 'Australia / Sydney'
+                                    ];
+                                @endphp
+                                @foreach($timezones as $tz => $label)
+                                    <option value="{{ $tz }}" {{ old('timezone', $user->timezone ?? 'Europe/Warsaw') === $tz ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('timezone')
+                                <p class="mt-1.5 text-sm text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Info o koncie Google --}}
                         @if ($user->google_id)
                             <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-900/60 border border-gray-700/40">

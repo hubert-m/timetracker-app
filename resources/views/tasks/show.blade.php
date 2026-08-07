@@ -88,7 +88,7 @@
                                             <span class="font-bold text-white">{{ $log->user->name ?? 'System' }}</span> 
                                             <span class="text-gray-300 font-medium ml-1">&mdash; <span class="{{ $isCompletedEvent ? 'text-emerald-400 font-semibold' : '' }}">{{ $log->description }}</span></span>
                                         </p>
-                                        <p class="text-xs {{ $isCompletedEvent ? 'text-emerald-500/70' : 'text-indigo-500/70' }} mt-0.5">{{ \Carbon\Carbon::parse($log->start_time)->format('d.m.Y H:i') }}</p>
+                                        <p class="text-xs {{ $isCompletedEvent ? 'text-emerald-500/70' : 'text-indigo-500/70' }} mt-0.5">{{ \Carbon\Carbon::parse($log->start_time)->timezone(Auth::user()->timezone ?? 'Europe/Warsaw')->format('d.m.Y H:i') }}</p>
                                     </div>
                                 </div>
                                 @else
@@ -104,8 +104,14 @@
                                         <div>
                                             <p class="text-sm font-bold text-white">{{ $log->user->name ?? 'Nieznany' }}</p>
                                             <p class="text-xs text-gray-400 mt-0.5">
-                                                {{ \Carbon\Carbon::parse($log->start_time)->format('d.m.Y') }} &middot; 
-                                                <span class="text-gray-300">{{ \Carbon\Carbon::parse($log->start_time)->format('H:i') }} - {{ $log->end_time ? \Carbon\Carbon::parse($log->end_time)->format('H:i') : 'Teraz' }}</span>
+                                                {{ \Carbon\Carbon::parse($log->date ?? $log->start_time)->timezone(Auth::user()->timezone ?? 'Europe/Warsaw')->format('d.m.Y') }} &middot; 
+                                                <span class="text-gray-300">
+                                                    @if($log->start_time)
+                                                        {{ \Carbon\Carbon::parse($log->start_time)->timezone(Auth::user()->timezone ?? 'Europe/Warsaw')->format('H:i') }} - {{ $log->end_time ? \Carbon\Carbon::parse($log->end_time)->timezone(Auth::user()->timezone ?? 'Europe/Warsaw')->format('H:i') : 'Teraz' }}
+                                                    @else
+                                                        Wpis ręczny
+                                                    @endif
+                                                </span>
                                             </p>
                                         </div>
                                     </div>
@@ -116,14 +122,19 @@
                                             </span>
                                         @endif
                                         <div class="bg-gray-800/80 px-3 py-1.5 rounded-lg border border-gray-700/50">
-                                            <span class="font-mono text-sm font-semibold {{ $log->end_time ? 'text-emerald-400' : 'text-yellow-400 animate-pulse' }}">
-                                                @if($log->end_time)
+                                            <span class="font-mono text-sm font-semibold {{ ($log->start_time && !$log->end_time) ? 'text-yellow-400 animate-pulse' : 'text-emerald-400' }}">
+                                                @if($log->start_time && !$log->end_time)
+                                                    Trwa...
+                                                @elseif($log->start_time && $log->end_time)
                                                     @php
                                                         $s = \Carbon\Carbon::parse($log->start_time)->diffInSeconds(\Carbon\Carbon::parse($log->end_time));
                                                         echo sprintf('%02d:%02d:%02d', floor($s/3600), floor(($s%3600)/60), $s%60);
                                                     @endphp
                                                 @else
-                                                    Trwa...
+                                                    @php
+                                                        $m = $log->duration_minutes;
+                                                        echo sprintf('%02d:%02d:00', floor($m/60), $m%60);
+                                                    @endphp
                                                 @endif
                                             </span>
                                         </div>
