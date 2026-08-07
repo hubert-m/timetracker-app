@@ -46,11 +46,14 @@ class ReportController extends Controller
     {
         $userId = Auth::id();
         $userTimezone = Auth::user()->timezone ?? 'Europe/Warsaw';
+        $offset = (int) $request->input('offset', 0);
         
-        // Wygenerowanie ostatnich 7 dni do kolumn (najstarsza z lewej, dzisiaj z prawej) z uwzględnieniem strefy
+        // Wygenerowanie ostatnich 7 dni do kolumn (najstarsza z lewej, ostatnia z prawej) z uwzględnieniem strefy i offsetu
+        $endDate = Carbon::today($userTimezone)->addWeeks($offset);
+        
         $dates = [];
         for ($i = 6; $i >= 0; $i--) {
-            $dates[] = Carbon::today($userTimezone)->subDays($i)->toDateString();
+            $dates[] = $endDate->copy()->subDays($i)->toDateString();
         }
 
         // Pobieramy hierarchię: Katalog -> Projekt -> Zadanie (tylko te dostępne dla usera)
@@ -95,6 +98,6 @@ class ReportController extends Controller
             $timeLogsMatrix[$log->task_id][$log->date] += $log->duration_minutes;
         }
 
-        return view('reports.timesheet', compact('dates', 'folders', 'unassignedProjects', 'timeLogsMatrix'));
+        return view('reports.timesheet', compact('dates', 'folders', 'unassignedProjects', 'timeLogsMatrix', 'offset'));
     }
 }

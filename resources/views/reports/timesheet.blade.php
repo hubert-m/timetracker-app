@@ -1,12 +1,23 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between flex-wrap gap-4">
             <h2 class="text-xl font-bold leading-tight text-white flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
                     <svg class="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                 </div>
                 Zestawienia godzin
             </h2>
+            <div class="flex items-center gap-2 bg-gray-800/80 p-1.5 rounded-xl border border-gray-700/50">
+                <a href="{{ route('timesheet.index', ['offset' => $offset - 1]) }}" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors cursor-pointer" title="Poprzedni tydzień">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </a>
+                <a href="{{ route('timesheet.index', ['offset' => 0]) }}" class="px-4 py-1.5 text-sm font-semibold {{ $offset == 0 ? 'text-white bg-indigo-600/80 hover:bg-indigo-500 shadow-sm' : 'text-gray-300 hover:bg-gray-700' }} rounded-lg transition-colors">
+                    Obecny tydzień
+                </a>
+                <a href="{{ route('timesheet.index', ['offset' => $offset + 1]) }}" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors cursor-pointer" title="Następny tydzień">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -39,9 +50,9 @@
                                     }
                                 @endphp
                                 @if($hasTasks)
-                                    <tr class="bg-gray-800/80 border-t-2 border-indigo-500/20">
-                                        <td colspan="{{ count($dates) + 1 }}" class="px-6 py-2.5 font-bold text-indigo-300 text-xs uppercase tracking-wider flex items-center gap-2">
-                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                    <tr class="bg-gray-800/80 border-t-2" style="border-top-color: {{ $folder->color ?? '#6366f1' }}33;">
+                                        <td colspan="{{ count($dates) + 1 }}" class="px-6 py-2.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2" style="color: {{ $folder->color ?? '#818cf8' }}">
+                                            <svg class="w-4 h-4" style="color: {{ $folder->color ?? '#818cf8' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                             {{ $folder->name }}
                                         </td>
                                     </tr>
