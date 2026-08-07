@@ -55,10 +55,10 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="text-gray-300 hover:text-white px-4 py-2 rounded-lg transition-colors hover:bg-gray-800/50 cursor-pointer flex items-center gap-2 font-medium">
+                    <a href="{{ route('reports.index') }}" class="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 font-medium {{ request()->routeIs('reports.*') ? 'text-white bg-gray-800/80 font-bold' : 'text-gray-300 hover:text-white hover:bg-gray-800/50' }}">
                         <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Raporty
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -187,6 +187,9 @@
             </button>
             <a href="{{ route('timesheet.index') }}" class="block pl-6 pr-4 py-2 border-l-4 border-transparent text-amber-400 hover:text-white hover:bg-gray-800 text-base font-medium transition-colors">
                 Zestawienia godzin
+            </a>
+            <a href="{{ route('reports.index') }}" class="block pl-3 pr-4 py-2 border-l-4 {{ request()->routeIs('reports.*') ? 'border-purple-400 text-white bg-gray-800' : 'border-transparent text-gray-400 hover:text-white hover:bg-gray-800 hover:border-gray-600' }} text-base font-medium transition-colors mt-2">
+                Raporty
             </a>
         </div>
         

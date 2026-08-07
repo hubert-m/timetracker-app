@@ -66,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::post('time-logs', [\App\Http\Controllers\TimeLogController::class, 'store'])->name('time-logs.store');
     Route::post('time-logs/update-inline', [\App\Http\Controllers\TimeLogController::class, 'updateInline'])->name('time-logs.update-inline');
 
+    Route::get('reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/pdf', [\App\Http\Controllers\ReportController::class, 'download'])->name('reports.pdf');
     Route::get('reports/timesheet', [\App\Http\Controllers\ReportController::class, 'timesheet'])->name('timesheet.index');
 });

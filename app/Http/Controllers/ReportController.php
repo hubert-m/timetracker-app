@@ -19,6 +19,18 @@ class ReportController extends Controller
         $this->reportService = $reportService;
     }
 
+    public function index()
+    {
+        $userId = Auth::id();
+        $projects = \App\Models\Project::with('users')->whereHas('users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->orWhereHas('tasks.users', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->get();
+
+        return view('reports.index', compact('projects'));
+    }
+
     public function download(Request $request)
     {
         $validated = $request->validate([
