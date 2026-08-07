@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-10">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- Nagłówek profilu z avatarem --}}
             <div class="mb-10">
@@ -77,12 +77,12 @@
                 </div>
             @enderror
 
-            <div class="space-y-8">
+            <div class="flex flex-wrap gap-8 items-start">
 
                 {{-- ========================================================= --}}
                 {{-- SEKCJA 1: DANE OSOBOWE                                    --}}
                 {{-- ========================================================= --}}
-                <div class="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700/60 shadow-xl overflow-hidden">
+                <div class="flex-1 min-w-[350px] bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700/60 shadow-xl overflow-hidden">
                     <div class="px-6 py-5 border-b border-gray-700/50 flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center">
                             <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
@@ -137,7 +137,7 @@
                 {{-- ========================================================= --}}
                 {{-- SEKCJA 2: BEZPIECZEŃSTWO — HASŁO                          --}}
                 {{-- ========================================================= --}}
-                <div class="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700/60 shadow-xl overflow-hidden">
+                <div class="flex-1 min-w-[350px] bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-700/60 shadow-xl overflow-hidden">
                     <div class="px-6 py-5 border-b border-gray-700/50 flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center">
                             <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
@@ -234,7 +234,7 @@
                 {{-- ========================================================= --}}
                 {{-- SEKCJA 3: STREFA ZAGROŻENIA — USUWANIE KONTA              --}}
                 {{-- ========================================================= --}}
-                <div class="bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-red-900/40 shadow-xl overflow-hidden" x-data="{ confirmDelete: false }">
+                <div class="flex-1 min-w-[350px] bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-red-900/40 shadow-xl overflow-hidden" x-data="{ confirmDelete: false }">
                     <div class="px-6 py-5 border-b border-red-900/30 flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center">
                             <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>
